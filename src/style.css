@@ -246,3 +246,118 @@ button{font:inherit;cursor:pointer}button:disabled{opacity:.54;cursor:not-allowe
  .skill-fx-halo{opacity:.65}.skill-fx-trace{opacity:.65}
  .skill-fx-core{opacity:.55}.skill-particle{display:none}.skill-fx-label{opacity:1}
 }
+
+
+/* V0.5 Divine Ascension: visibly distinct divine, secret and transformed skills. */
+.rarity-divine{--ascend-main:#fbdc86;--ascend-shadow:#ddab57}
+.rarity-mystery{--ascend-main:#f5c0ff;--ascend-shadow:#b96fe9}
+.rarity-evolved{--ascend-main:#bff5e8;--ascend-shadow:#5cc6b2}
+.card.rarity-divine,.card.rarity-mystery,.card.rarity-evolved{
+  border:2px solid var(--ascend-main);box-shadow:0 0 19px var(--ascend-shadow,#a09fbe)55,
+   inset 0 0 20px #ffffff0b;
+}
+.card.rarity-divine .card-name,.card.rarity-mystery .card-name,.card.rarity-evolved .card-name{
+  color:var(--ascend-main);
+}
+.card.rarity-divine .card-art{background:radial-gradient(circle at 50% 50%,#f2d18a6e,transparent 69%),
+ linear-gradient(125deg,#342647,#1a2646)}
+.card.rarity-mystery .card-art{background:radial-gradient(circle at 50% 50%,#de89f285,transparent 69%),
+ linear-gradient(125deg,#2a193e,#171c48)}
+.card.rarity-evolved .card-art{background:radial-gradient(circle at 50% 50%,#96f7cf69,transparent 69%),
+ linear-gradient(125deg,#164242,#202448)}
+.ascend-intro{text-align:center;position:relative;overflow:hidden;
+ background:radial-gradient(ellipse at 50% 0,#9372d963,transparent 60%),
+ radial-gradient(circle at 20% 100%,#304d8b73,transparent 50%),#151c39;
+ border:1px solid #d6bf927a;border-radius:22px;padding:30px 24px;margin:0 0 20px}
+.ascend-intro:before{content:"";position:absolute;inset:-120%;pointer-events:none;opacity:.3;
+ background:conic-gradient(from 45deg,transparent,#b0a2ed32,transparent,#f3d59b29,transparent);
+ animation:ascendOrbit 18s linear infinite}
+.ascend-intro>*{position:relative;z-index:1}
+.ascend-intro h2{font-size:clamp(21px,3.7vw,32px);margin:7px 0 10px;color:#fff1c4}
+.ascend-intro p{font-size:12px;line-height:1.7;color:#c3cce2;max-width:720px;margin:0 auto}
+.ascend-sigil{display:block;font-size:58px;line-height:1;color:#ffe3a3;
+ text-shadow:0 0 29px #f6c985,0 0 60px #a4a0f2;animation:ascendGlow 3s ease-in-out infinite}
+.ascend-chance{display:inline-flex;align-items:center;justify-content:center;margin-top:17px;
+ border:1px solid #eac98180;background:#d9af6440;color:#ffe9a4;font-size:12px;
+ font-weight:800;border-radius:99px;padding:8px 16px}
+.ascend-head{margin:24px 0 12px}
+.ascend-head h3{font-size:18px;margin:5px 0 8px}
+.ascend-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}
+.ascend-card{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0;gap:9px;
+ padding:21px 15px 15px;min-height:296px;text-align:center;overflow:hidden;
+ border:2px solid var(--ascend-main,#d7c0fe);border-radius:18px;
+ color:#f9f2fc;background:radial-gradient(circle at 50% 33%,var(--ascend-shadow,#826aad)35,transparent 61%),
+ linear-gradient(145deg,#292744,#171e39);box-shadow:0 0 20px #cda4f02b;
+ transition:transform .18s,box-shadow .18s}
+.ascend-card:before{content:"";position:absolute;inset:-80%;pointer-events:none;opacity:.3;
+ background:conic-gradient(transparent,var(--ascend-main,#eac2ee),transparent);
+ animation:ascendOrbit 9s linear infinite}
+.ascend-card>*{z-index:1;position:relative}
+.ascend-card:hover{transform:translateY(-4px);box-shadow:0 0 26px var(--ascend-shadow,#b095ff)}
+.ascend-card .ascend-rarity{align-self:flex-start;color:var(--ascend-main,#efcefe);
+ letter-spacing:.11em;font-size:10px;font-weight:900}
+.ascend-card .ascend-icon{display:grid;place-items:center;min-height:74px}
+.ascend-card .ascend-icon svg{width:70px;height:70px;color:var(--ascend-main,#edc5ff);
+ filter:drop-shadow(0 0 15px var(--ascend-shadow,#a481ee))}
+.ascend-card strong{font-size:18px;line-height:1.4;color:#fff1d7}
+.ascend-card small{font-size:10px;color:#d8cae8}
+.ascend-card p{flex:1;font-size:11px;line-height:1.7;color:#d1dcf1;margin:6px 0}
+.ascend-card b{align-self:stretch;padding:10px;border-top:1px solid #f3e8c233;
+ font-size:11px;color:var(--ascend-main,#fae2aa)}
+.evolution-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.evolution-option{display:flex;align-items:center;min-width:0;gap:13px;border:1px solid #79c9b39a;
+ background:linear-gradient(120deg,#164341b0,#242342cf);padding:13px;border-radius:12px;color:#edf7f1;text-align:left}
+.evolution-option:hover{border-color:#c1ffe3;background:#284d51}
+.evolution-option svg{color:#b8ffe2;width:39px;height:39px;flex:none}
+.evolution-option span{display:grid;gap:5px;min-width:0;flex:1}
+.evolution-option strong{font-size:12px;color:#e1fff0}
+.evolution-option small{font-size:10px;line-height:1.6;color:#c1d7d3}
+.evolution-option b{color:#c8ffe2;white-space:nowrap;font-size:10px}
+.skill-fx:where(.shape-divine-thunder,.shape-divine-phoenix,.shape-divine-cosmos,.shape-secret-genesis,
+ .shape-secret-eclipse,.shape-secret-void) .skill-fx-halo{border-width:6px;
+ width:165px;height:165px;animation:divineHalo .75s ease-out both}
+.skill-fx:where(.shape-divine-thunder,.shape-secret-paradox,.shape-evolution-lightning) .skill-fx-trace{
+ border-radius:2px;clip-path:polygon(52% 0,8% 48%,39% 48%,20% 100%,95% 42%,60% 40%,76% 0);
+ border:0;width:34px;height:162px;background:var(--vfx);animation:lightningSnap .72s steps(4,end) both}
+.skill-fx:where(.shape-divine-phoenix,.shape-evolution-flame,.shape-divine-blood) .skill-fx-core{
+ border-radius:50% 0 50% 45%;width:103px;height:100px;animation:flameBloom .77s ease-out both}
+.skill-fx:where(.shape-divine-frost,.shape-divine-prism,.shape-evolution-ice) .skill-fx-core{
+ clip-path:polygon(50% 0,100% 35%,75% 100%,25% 100%,0 35%);
+ border-radius:0;width:108px;height:130px}
+.skill-fx:where(.shape-divine-sigil,.shape-secret-immortal,.shape-evolution-spirit) .skill-fx-trace{
+ border:9px double var(--vfx);animation:spinTrace .85s ease-out both}
+.skill-fx:where(.shape-divine-orbit,.shape-secret-paradox,.shape-secret-eclipse) .skill-fx-halo{
+ border-style:dashed;width:165px;height:165px;animation:spinTrace .85s linear both}
+.skill-fx:where(.shape-secret-void,.shape-secret-genesis,.shape-divine-cosmos) .skill-fx-core{
+ background:radial-gradient(circle,#1e0d39,#463071 25%,var(--vfx) 52%,transparent 67%);
+ width:126px;height:126px;animation:coreBurst .78s ease-out both}
+.skill-fx:where(.shape-evolution-sword,.shape-evolution-blood,.shape-evolution-venom) .skill-fx-trace{
+ border:0;width:170px;height:11px;background:var(--vfx);border-radius:2px;
+ box-shadow:0 0 25px var(--vfx);animation:cutTrace .72s ease-out both}
+@keyframes ascendGlow{50%{text-shadow:0 0 48px #fff6c4,0 0 85px #b0a0ff;transform:scale(1.07)}}
+@keyframes ascendOrbit{to{transform:rotate(360deg)}}
+@keyframes divineHalo{0%{opacity:0;transform:scale(.1)}40%{opacity:1}100%{opacity:0;transform:scale(2.1)}}
+@media(max-width:740px){
+ .ascend-options{grid-template-columns:1fr;gap:10px}
+ .ascend-card{min-height:174px;display:grid;grid-template-columns:76px 1fr;
+ grid-template-areas:"rarity rarity" "icon name" "icon meta" "desc desc" "cta cta";
+ text-align:left;align-content:start;padding:13px;column-gap:12px}
+ .ascend-card .ascend-rarity{grid-area:rarity}.ascend-card .ascend-icon{grid-area:icon;min-height:76px}
+ .ascend-card .ascend-icon svg{width:62px;height:62px}
+ .ascend-card strong{grid-area:name;align-self:end;font-size:16px}
+ .ascend-card small{grid-area:meta;align-self:start}
+ .ascend-card p{grid-area:desc;font-size:11px;margin:4px 0;line-height:1.55}
+ .ascend-card b{grid-area:cta;text-align:center;padding:8px}
+ .evolution-options{grid-template-columns:1fr}
+ .ascend-intro{padding:23px 13px}.ascend-intro h2{font-size:22px}
+}
+@media(max-width:390px){
+ .ascend-card{grid-template-columns:61px 1fr;padding:10px}
+ .ascend-card .ascend-icon svg{width:53px;height:53px}
+ .evolution-option{gap:8px;padding:10px}
+ .evolution-option svg{width:30px;height:30px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ascend-intro:before,.ascend-card:before,.ascend-sigil{animation:none!important}
+ .ascend-card:hover{transform:none}
+}
