@@ -122,3 +122,127 @@ button{font:inherit;cursor:pointer}button:disabled{opacity:.54;cursor:not-allowe
 @media(max-width:520px){.modal.collection{padding:20px 12px}.library-count{font-size:10px}.sidebar{padding:10px}.status{font-size:9px}}
 
 @media(max-width:850px){.sidebar .side-title:nth-of-type(3):not(.combat-log-title){display:block}}
+
+
+/* V0.4 — forged cards, artifacts, boss phases and procedural skill animations. */
+.card.upgraded,.forge-card{border-color:#e5c483;box-shadow:0 0 19px #e5c48335,inset 0 0 0 2px #e5c48333}
+.card.upgraded .card-name{color:#ffe7a5}
+.relic-strip{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin:5px 0 14px;font-size:11px}
+.relic-tag{display:inline-flex;align-items:center;gap:6px;border:1px solid #a79dca66;background:#232848bd;
+ padding:7px 9px;border-radius:10px;color:#f0e8fc;max-width:100%}
+.relic-tag svg{width:23px;height:23px;flex:none;color:#e2c3fc}
+.relic-tag b{font-size:10px;line-height:1.35}
+.relic-electric svg{color:#b6cafa}.relic-fire svg{color:#ffa878}
+.relic-poison svg{color:#b0eb9f}.relic-blood svg{color:#ffacc8}.relic-shield svg{color:#b9ddc0}
+.relic-summon svg{color:#f5d9a5}
+.journey-relics{margin:0 0 15px;border:1px solid #e5d0ae39;background:#2427447f;padding:10px 12px;border-radius:12px}
+.journey-relics .relic-strip{margin:6px 0 1px}
+.relic-purchase{border-color:#d7bf8366;background:linear-gradient(110deg,#34334b,#1a253c)}
+.relic-win{margin:12px auto;padding:11px 15px;border:1px solid #d7ba76a6;background:#57492966;
+ border-radius:10px;color:#ffecb5;font-size:12px;line-height:1.6}
+.forge-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:11px;margin:18px 0}
+.forge-card{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:15px 12px;
+ border-radius:14px;background:radial-gradient(circle at 50% 14%,#69618e50,transparent 50%),#1d2740;
+ color:#f3e9ff;min-height:203px;transition:transform .18s,border-color .18s}
+.forge-card:hover{transform:translateY(-3px);border-color:#ffe7a7}
+.forge-card svg{height:51px;width:51px;color:var(--school,#c5b4ff);filter:drop-shadow(0 0 14px var(--school,#c5b4ff))}
+.forge-card strong{font-size:14px;line-height:1.45}.forge-card span{font-size:10px;color:#dec394}
+.forge-card small{color:#b6c3dc;font-size:10px;line-height:1.65;flex:1}
+.forge-card b{font-size:11px;color:#ffdd98;border-top:1px solid #cbb78b54;padding-top:8px;width:100%}
+.phase-warning{position:relative;z-index:3;display:block;width:max-content;max-width:95%;margin:9px auto 0;
+ padding:7px 12px;text-align:center;font-weight:800;font-size:10px;letter-spacing:.09em;
+ border:1px solid #f6b49a8c;border-radius:9px;color:#ffe3cd;background:#713b52b8}
+.enemy-actor.enraged{filter:drop-shadow(0 0 28px #ec739bc0)!important;animation:enragedFloat 1.5s ease-in-out infinite}
+.intent-pierce,.intent-nova{border-color:#ed8ca6b0;background:#71374bab}
+.intent-fortify{border-color:#9b89e6aa;background:#323b81b0}
+.intent-nova strong,.intent-pierce strong{color:#ffe0ac}
+@keyframes enragedFloat{50%{transform:translateY(-8px);filter:brightness(1.4) drop-shadow(0 0 25px #ef87c4)}}
+/* Preset palettes: all 50 skills have their own lookup and procedural trace form. */
+.skill-fx{--vfx:#dfd5ff;--vfx2:#a892f4;position:absolute;left:50%;top:47%;transform:translate(-50%,-50%);
+ width:190px;height:190px;display:grid;place-items:center;filter:drop-shadow(0 0 12px var(--vfx));z-index:4}
+.skill-fx-steel{--vfx:#c6dcfa;--vfx2:#5f9fcf}
+.skill-fx-aegis{--vfx:#b9f8e2;--vfx2:#5683bd}
+.skill-fx-lightning{--vfx:#d0e5ff;--vfx2:#7e96ff}
+.skill-fx-fire{--vfx:#ffd498;--vfx2:#ec694f}
+.skill-fx-frost{--vfx:#d1f7ff;--vfx2:#76b7ff}
+.skill-fx-blood{--vfx:#ffb0cf;--vfx2:#b93e75}
+.skill-fx-poison{--vfx:#c9ffa9;--vfx2:#5ba95c}
+.skill-fx-time{--vfx:#eec9ff;--vfx2:#8f7bd5}
+.skill-fx-spirit{--vfx:#fee7bb;--vfx2:#8a90f0}
+.skill-fx-cosmic{--vfx:#fff2c5;--vfx2:#ab75e5}
+.skill-fx-arcane{--vfx:#e4c8ff;--vfx2:#8b79d4}
+.skill-fx-halo,.skill-fx-trace,.skill-fx-core,.skill-fx-particles{position:absolute;pointer-events:none}
+.skill-fx-halo{width:135px;height:135px;border:2px solid var(--vfx);border-radius:50%;
+ box-shadow:0 0 21px var(--vfx2),inset 0 0 24px var(--vfx2);animation:haloPulse .63s ease-out both}
+.skill-fx-trace{width:120px;height:120px;border:7px solid transparent;border-left-color:var(--vfx);border-top-color:var(--vfx2);
+ border-radius:50%;filter:drop-shadow(0 0 14px var(--vfx));animation:spinTrace .66s cubic-bezier(.12,.8,.25,1) both}
+.skill-fx-core{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle,#fff 0,var(--vfx) 22%,var(--vfx2) 58%,transparent 72%);
+ box-shadow:0 0 42px 18px var(--vfx2);animation:coreBurst .64s ease-out both}
+.skill-fx-particles{inset:0}
+.skill-particle{--a:calc(var(--i)*32deg);position:absolute;left:calc(50% - 4px);top:calc(50% - 4px);
+ width:8px;height:17px;border-radius:50%;background:var(--vfx);box-shadow:0 0 15px var(--vfx2);
+ transform:rotate(var(--a)) translateY(2px) scale(.3);animation:particleScatter .65s cubic-bezier(.12,.9,.2,1) both;
+ animation-delay:calc(var(--i)*19ms)}
+.skill-fx-label{position:absolute;top:80%;padding:6px 13px;background:#090e26e8;
+ border:1px solid var(--vfx2);border-radius:9px;color:#fff8eb;text-shadow:0 0 12px var(--vfx);
+ font-size:12px;font-weight:800;white-space:nowrap;max-width:240px;text-overflow:ellipsis;overflow:hidden;
+ animation:labelReveal .63s ease-out both}
+.shape-slash .skill-fx-trace,.shape-scythe .skill-fx-trace,.shape-rift .skill-fx-trace,
+.shape-counter .skill-fx-trace{border-radius:3px;border-width:8px 0 0;transform:rotate(-35deg);
+ width:174px;height:9px;box-shadow:0 0 25px var(--vfx);animation:cutTrace .63s ease-out both}
+.shape-cross-slash .skill-fx-trace,.shape-shatter .skill-fx-trace{border-radius:2px;transform:rotate(44deg);
+ border-width:9px 0 0;width:175px;height:9px;animation:cutTrace .65s ease-out both}
+.shape-fork .skill-fx-trace,.shape-thunderbolt .skill-fx-trace,.shape-crystalbolt .skill-fx-trace{
+ border:0;background:var(--vfx);width:16px;height:155px;clip-path:polygon(53% 0,7% 45%,45% 44%,24% 100%,96% 42%,57% 43%,86% 0);
+ box-shadow:0 0 20px var(--vfx);animation:lightningSnap .62s steps(3,end) both}
+.shape-fireball .skill-fx-core,.shape-meteor .skill-fx-core,.shape-eruption .skill-fx-core,
+.shape-phoenix .skill-fx-core,.shape-bloodflame .skill-fx-core{border-radius:50% 0 50% 50%;transform:rotate(-30deg);
+ width:80px;height:80px;animation:flameBloom .68s ease-out both}
+.shape-shards .skill-fx-core,.shape-icewall .skill-fx-core,.shape-crystalbolt .skill-fx-core{
+ clip-path:polygon(50% 0,95% 20%,100% 65%,50% 100%,0 65%,5% 20%);border-radius:0;
+ width:88px;height:110px}
+.shape-dome .skill-fx-halo,.shape-bastion .skill-fx-halo,.shape-reflect .skill-fx-halo,
+.shape-mirrorward .skill-fx-halo{border-width:8px;box-shadow:inset 0 0 30px var(--vfx),0 0 26px var(--vfx2)}
+.shape-venomnova .skill-fx-halo,.shape-entropynova .skill-fx-halo,.shape-cosmos .skill-fx-halo{
+ border-style:dashed;border-width:5px;animation:spinTrace .72s ease-out both}
+.shape-mist .skill-fx-core,.shape-steam .skill-fx-core{filter:blur(14px);width:116px;height:100px}
+.shape-sigil .skill-fx-core,.shape-clock .skill-fx-core,.shape-reverse-clock .skill-fx-core,
+.shape-hourglass .skill-fx-core,.shape-rune .skill-fx-core{background:transparent;border:5px double var(--vfx);
+ border-radius:50%;animation:spinTrace .74s ease-out both}
+.shape-summon .skill-fx-trace,.shape-swarm .skill-fx-trace,.shape-portal .skill-fx-trace,
+.shape-monolith .skill-fx-trace{border:7px dotted var(--vfx);animation:spinTrace .72s ease-out both}
+.shape-serpent .skill-fx-trace,.shape-thorns .skill-fx-trace{border:7px dashed var(--vfx);animation:spinTrace .7s ease-in-out both}
+.shape-constellation .skill-fx-core,.shape-dual-storm .skill-fx-core{box-shadow:0 0 37px 19px var(--vfx2),0 0 70px 30px var(--vfx)}
+.impact-number{position:absolute;right:19%;top:25%;font-size:34px;font-weight:900;color:#ffe9ac;
+ text-shadow:0 0 24px #ff718c,0 2px 3px #180d23;animation:impactRise .72s ease-out both}
+@keyframes haloPulse{0%{opacity:0;transform:scale(.18)}35%{opacity:1}100%{opacity:0;transform:scale(1.8)}}
+@keyframes spinTrace{0%{opacity:0;transform:rotate(-130deg) scale(.15)}35%{opacity:1}100%{opacity:0;transform:rotate(220deg) scale(1.5)}}
+@keyframes coreBurst{0%{opacity:0;transform:scale(.15)}35%{opacity:1}100%{opacity:0;transform:scale(1.7)}}
+@keyframes particleScatter{0%{opacity:0;transform:rotate(var(--a)) translateY(0) scale(.15)}
+ 30%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(-92px) scale(.25)}}
+@keyframes labelReveal{0%{opacity:0;transform:translateY(14px)}32%{opacity:1}100%{opacity:0;transform:translateY(-12px)}}
+@keyframes cutTrace{0%{opacity:0;transform:rotate(-50deg) scale(.12)}35%{opacity:1}100%{opacity:0;transform:rotate(15deg) scale(1.5)}}
+@keyframes lightningSnap{0%,100%{opacity:0;transform:scaleY(.2)}30%,75%{opacity:1;transform:scaleY(1)}}
+@keyframes flameBloom{0%{opacity:0;transform:rotate(-30deg) scale(.3)}40%{opacity:1}100%{opacity:0;transform:rotate(-12deg) scale(1.8)}}
+@keyframes impactRise{0%{opacity:0;transform:translateY(18px) scale(.5)}35%{opacity:1}100%{opacity:0;transform:translateY(-32px) scale(1.06)}}
+@media(max-width:850px){
+ .forge-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .journey-choice-grid:has([data-rest="upgrade"]){grid-template-columns:repeat(2,minmax(0,1fr))}
+ .journey-choice-grid [data-rest="upgrade"]{grid-column:span 2;min-height:110px}
+ .skill-fx{transform:translate(-50%,-50%) scale(.75)}
+ .relic-strip{gap:5px}
+}
+@media(max-width:520px){
+ .forge-grid{gap:7px}.forge-card{padding:10px 7px;min-height:179px}
+ .forge-card svg{width:38px;height:38px}.forge-card strong{font-size:12px}
+ .forge-card small{font-size:9px}
+ .phase-warning{font-size:8px;padding:5px 8px}
+ .skill-fx{left:58%;top:44%;transform:translate(-50%,-50%) scale(.62)}
+ .impact-number{right:12%;top:22%;font-size:23px}
+ .journey-relics{padding:8px}
+}
+@media(prefers-reduced-motion:reduce){
+ .skill-fx *,.impact-number,.enemy-actor.enraged{animation:none!important}
+ .skill-fx-halo{opacity:.65}.skill-fx-trace{opacity:.65}
+ .skill-fx-core{opacity:.55}.skill-particle{display:none}.skill-fx-label{opacity:1}
+}
