@@ -24,7 +24,7 @@ jobs:
         with:
           node-version: '22'
       - name: Test combat engine
-        run: node --test tests/core.test.mjs
+        run: node --test tests/*.test.mjs
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
         with:
