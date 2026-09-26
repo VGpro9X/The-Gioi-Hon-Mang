@@ -23,8 +23,8 @@
 
 | Mốc | Nội dung | Trạng thái |
 |---|---|---|
-| V0.1 | Prototype 20 thẻ, chọn chuỗi và tự thi triển; 3 trận mẫu, địch có ý định, nhận thưởng giữa ải; layout PC/mobile | Đã commit mã nguồn; cần người dùng test sau khi xác nhận Pages |
-| V0.2 | Sơ đồ hành trình phân nhánh, cửa hàng, sự kiện, điểm nghỉ và lưu tiến trình | Chưa bắt đầu |
+| V0.1 | Prototype 20 thẻ, chiến đấu chọn chuỗi, layout PC/mobile | Đã hoàn thành; người dùng đồng ý tiếp tục |
+| V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã viết mã; chờ kiểm thử Pages và người dùng đánh giá |
 | V0.3 | Mở rộng ~50 thẻ, nhiều nguyên tố và combo; kỹ năng bị động, phản ứng | Chưa bắt đầu |
 | V0.4 | Hoạt ảnh và hiệu ứng đặc trưng, nâng cấp thẻ, di vật, quái tinh anh và boss | Chưa bắt đầu |
 | V0.5 | Thần Kỹ, Thần Bí Kỹ, tiến hóa và biến thể kỹ năng hiếm | Chưa bắt đầu |
@@ -48,5 +48,17 @@
 - [x] Có Khiên, Kiếm Ý, Thiêu Đốt, Xuất Huyết, Băng Giá, Lôi Ấn và tương tác combo.
 - [x] Có thể chiến đấu 3 ải, chọn thẻ thưởng và chơi lại; lưu số lượt hoàn thành.
 - [x] Giao diện tiếng Việt, đáp ứng màn hình PC/mobile.
-- [ ] Xác nhận quy trình Pages thành công và URL truy cập công khai.
-- [ ] Người dùng chơi thử và duyệt checkpoint V0.1.
+- [x] Đã xác nhận Pages V0.1 và URL công khai.
+- [x] Người dùng cho phép bắt đầu V0.2.
+
+
+## V0.2 — CHECKPOINT HIỆN TẠI
+
+- Bản đồ 6 tầng, 16 điểm và đường đi theo cột liền kề; các điểm sự kiện, nghỉ, cửa hàng được xáo trộn mỗi lần chơi.
+- Thắng trận nhận vàng, chọn một thẻ và hồi một ít máu. Trận Tinh Anh và Boss có chỉ số khác trận thường.
+- Cửa hàng có 3 thẻ ngẫu nhiên, mỗi thẻ mua một lần; thuốc hồi máu dùng vàng.
+- Điểm nghỉ cho chọn hồi máu hoặc tăng máu tối đa; ba sự kiện với lựa chọn đánh đổi.
+- Tự động lưu và khôi phục lượt chơi bằng localStorage trên trình duyệt hiện tại.
+- Chạy toàn bộ kiểm thử Node.js trước khi tự triển khai GitHub Pages.
+
+**DỪNG sau V0.2:** Sau khi build/deploy thành công, gửi link và chờ người dùng test và xác nhận rồi mới làm V0.3.
