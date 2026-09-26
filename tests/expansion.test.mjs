@@ -104,10 +104,12 @@ test("Thời Không can recycle a spent card, echo elemental spells and draw",()
  assert.equal(g.enemy.mark,3);assert.equal(g.enemy.hp,982); // 6 spark + 12 echo
  const reuse=start();const [blade,rewind]=setHand(reuse,"blade","rewind");
  playCard(reuse,blade.uid);playCard(reuse,rewind.uid);
- assert.ok(reuse.hand.some(c=>c.id==="blade"));
+ assert.ok(reuse.hand.some(c=>c.id==="blade"));assert.equal(reuse.extraPlanning,true);
  const draw=start();draw.draw=[{id:"guard",uid:uid++}];
  single(draw,"quicken");
- assert.equal(draw.hand.length,1);assert.equal(draw.hand[0].id,"guard");
+ assert.equal(draw.hand.length,1);assert.equal(draw.hand[0].id,"guard");assert.equal(draw.extraPlanning,true);
+ const step=start();single(step,"chronostep");assert.equal(step.extraPlanning,true);assert.equal(step.block,9);
+ const empty=start();empty.draw=[];empty.discard=[];single(empty,"quicken");assert.equal(empty.extraPlanning,false);
 });
 test("cross-element Entropy uses all five statuses and consumes exactly one of each",()=>{
  const g=start();Object.assign(g.enemy,{burn:2,bleed:3,frost:4,mark:5,poison:6});
@@ -125,6 +127,7 @@ test("V0.2 save is migrated without losing map, cards, route, gold or battle sta
  assert.deepEqual(saved.route,route);assert.equal(saved.phase,"planning");
  assert.equal(saved.draw.length+saved.discard.length+saved.hand.length,14);
  assert.deepEqual(saved.summons,{wisp:0,golem:0});
+ assert.equal(saved.extraPlanning,false);
  assert.equal(restoreGame("garbage"),null);
 });
 test("post-combat rewards contain a passive or reactive skill and shops can sell new cards",()=>{
