@@ -1,31 +1,31 @@
 # Thẻ Giới: Hỗn Mang
 
-Game thẻ bài Roguelite chơi đơn, Việt hóa, thiết kế cho PC và điện thoại.
+Game thẻ bài Roguelite bán tự động, Việt hóa, dành cho PC và điện thoại.
 
-**Phiên bản hiện tại: V0.1 — Prototype chiến đấu.** Chọn các lá bài theo thứ tự (tối đa 3 năng lượng), nhấn **Thi Triển** để thực hiện chuỗi kỹ năng, tận dụng hiệu ứng trạng thái và vượt qua 3 ải. Thư viện V0.1 có 20 kỹ năng. Giữa các ải, chọn một trong ba lá bài thưởng.
+**Phiên bản V0.2 — Hành trình Roguelite.**
 
-**Chơi trên GitHub Pages (sau khi Actions triển khai thành công):** https://VGpro9X.github.io/The-Gioi-Hon-Mang/
+**Chơi trên GitHub Pages:** https://VGpro9X.github.io/The-Gioi-Hon-Mang/
 
-## Hướng dẫn
+## Cách chơi
 
-- Chọn thẻ để thêm vào chuỗi. Chạm lại vào thẻ hoặc nút trong hàng chuỗi để bỏ chọn.
-- Nhấn Thi Triển hoặc Kết Thúc Lượt; kẻ địch hành động cuối lượt theo ý định đã hiển thị.
-- Lôi Kiếm → Lôi Bạo, Hỏa Cầu → Bộc Viêm, Băng Trảm → Băng Toái là các combo thử nghiệm.
-- Chiến thắng 3 ải để hoàn thành prototype. Có thể bắt đầu lượt chơi mới với hai thẻ khởi đầu ngẫu nhiên khác.
-- Trò chơi chạy trực tiếp trong trình duyệt, không cần tài khoản. Thành tích hoàn thành được lưu cục bộ bằng localStorage; tiến trình đang chơi chưa được lưu trong V0.1.
+- Chọn nhánh trên bản đồ 6 tầng. Chỉ đi tới nút cùng cột hoặc cột liền kề vị trí vừa đi; sơ đồ được xáo trộn sau mỗi hành trình mới.
+- Trong trận, chọn thẻ theo thứ tự trong giới hạn 3 năng lượng, bấm Thi Triển để nhân vật tự tung chiêu. Thử combo Lôi Kiếm → Lôi Bạo, Băng Trảm → Băng Toái, Hỏa Cầu → Bộc Viêm.
+- Thắng trận thường/Tinh Anh: nhận vàng, chọn một trong ba thẻ mới và hồi một phần sinh lực.
+- Cửa hàng: mua ba thẻ ngẫu nhiên theo giá/độ hiếm, mỗi thẻ chỉ một lần. Thuốc hồi 22 Máu giá 24 vàng.
+- Điểm nghỉ: chọn hồi 25 Máu hoặc tăng 8 Máu tối đa kèm hồi 8.
+- Sự kiện: một trong ba tình huống ngẫu nhiên, mỗi sự kiện có hai cách giải quyết.
+- Đánh bại Boss tầng 6 để hoàn thành V0.2.
+
+**Tự lưu:** Lượt chơi đang diễn ra lưu bằng localStorage trên trình duyệt hiện tại. Tải lại trang để chơi tiếp; không đồng bộ giữa thiết bị và sẽ mất nếu xóa dữ liệu website. Chơi mới yêu cầu xác nhận trước khi ghi đè.
 
 ## Chạy tại máy
 
-Chạy một HTTP server tại thư mục dự án (ví dụ `python -m http.server 8000`), sau đó mở `http://localhost:8000`. Không nên mở bằng `file://` vì ES Modules có thể bị trình duyệt chặn.
+Dùng một HTTP server ở thư mục dự án, ví dụ: python -m http.server 8000, sau đó truy cập http://localhost:8000. Không dùng file:// vì trình duyệt có thể chặn ES Modules.
 
-Chạy kiểm thử (Node.js 20+):
+Chạy kiểm thử (Node.js 20+): node --test tests/*.test.mjs
 
-```sh
-node --test tests/core.test.mjs
-```
+Kiến trúc: HTML/CSS/SVG + ES Modules. src/core.mjs chứa luật chiến đấu và hành trình, src/journey.mjs chứa bản đồ, src/main.mjs xử lý giao diện. Không cần backend.
 
-## Kiến trúc
+## Quy tắc checkpoint
 
-Giao diện V0.1 hiện sử dụng native ES Modules + SVG/CSS để chạy ngay trên GitHub Pages. Engine chiến đấu được tách riêng trong `src/core.mjs` để tiện mở rộng và chuyển giao diện sang Vue/Phaser về sau.
-
-**[Đọc PLAN.md](./PLAN.md)** để xem roadmap V0.1–V0.7 và **quy tắc checkpoint bắt buộc**: làm xong từng V0.x phải dừng, deploy và gửi link cho người dùng test; chỉ tiếp tục sau khi được xác nhận.
+Xem PLAN.md: Sau mỗi V0.x, phải dừng, kiểm tra GitHub Pages và gửi URL cho người dùng test; chỉ tiếp tục sau khi người dùng xác nhận.
