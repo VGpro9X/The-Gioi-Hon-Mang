@@ -4,7 +4,7 @@ import {CARD_FX,effectPreset,effectMarkup} from "../src/effects.mjs";
 import {RELICS,RELIC_IDS} from "../src/relics.mjs";
 import {CARDS,CARD_POOL,createGame,availableNodes,chooseNode,playCard,finishTurn,
  chooseReward,takeRest,startShopUpgrade,upgradableCards,upgradeCard,cancelUpgrade,buyRelic,
- leaveShop,getIntent,restoreGame,serializeGame} from "../src/core.mjs";
+ leaveShop,chooseEvent,getIntent,restoreGame,serializeGame} from "../src/core.mjs";
 
 let next=970000;
 const start=()=>{
@@ -69,9 +69,15 @@ test("relic purchase is priced, owned permanently and starts protection in the n
 });
 test("defeating a mid-route elite always grants one unowned relic and names it on reward screen",()=>{
  const g=start();beat(g);
- assert.ok(chooseNode(g,availableNodes(g).find(n=>n.kind==="rest").id));
- assert.ok(takeRest(g,"heal"));assert.equal(g.phase,"map");
- assert.ok(chooseNode(g,availableNodes(g).find(n=>n.kind==="elite").id));
+ const eliteNode=g.map.find(n=>n.row===2&&n.kind==="elite");
+ assert.ok(eliteNode);
+ const waypoint=availableNodes(g).find(n=>n.col===eliteNode.col);
+ assert.ok(chooseNode(g,waypoint.id));
+ if(waypoint.kind==="rest")assert.ok(takeRest(g,"heal"));
+ else if(waypoint.kind==="shop")assert.ok(leaveShop(g));
+ else assert.ok(chooseEvent(g,"safe"));
+ assert.equal(g.phase,"map");
+ assert.ok(chooseNode(g,availableNodes(g).find(n=>n.id===eliteNode.id).id));
  g.enemy.hp=1;play(g,"blade");
  assert.equal(g.phase,"reward");assert.equal(g.relics.length,1);
  assert.ok(RELICS[g.lastRelic]);assert.ok(g.relics.includes(g.lastRelic));
