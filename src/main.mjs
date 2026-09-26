@@ -146,11 +146,24 @@ function render(){
 }
 function choiceCard(id){
   const d=CARDS[id];
-  return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
+  return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+' · '+kindLabel(d.kind)+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
 }
 function overlay(){
- if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Để ý ý định của địch:</b> Khiên chặn sát thương trong một lượt, Băng Giá giảm sát thương kẻ địch. Đi qua bản đồ 6 tầng để gặp Boss. Cửa hàng dùng vàng từ chiến đấu, điểm nghỉ giúp hồi phục. Tiến trình tự lưu.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
- if(showCollection)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal collection"><button class="modal-close" data-action="close">×</button><span class="eyebrow">20 KỸ NĂNG</span><h2>Thư viện thẻ V0.3</h2><p class="muted">12 thẻ nền tảng và các kỹ năng xuất hiện ngẫu nhiên hoặc qua phần thưởng. Mỗi lần chơi, bộ bài khởi đầu có thêm 2 thẻ ngẫu nhiên.</p><div class="library-grid">'+CARD_POOL.map(id=>{const d=CARDS[id];return '<div class="library-item skill-'+d.icon+'">'+icon(d.icon)+'<div><b>'+d.name+'</b><small>'+d.school+' · '+d.cost+' năng lượng</small><p>'+d.desc+'</p></div></div>';}).join('')+'</div></section></div>';
+ if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Tiến trình V0.2 tự nâng cấp khi mở V0.3.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
+ if(showCollection){
+   const filtered=CARD_POOL.filter(id=>collectionFilter==="all"||
+     CARDS[id].kind===collectionFilter||CARDS[id].school===collectionFilter);
+   return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal collection">'+
+     '<button class="modal-close" data-action="close">×</button><span class="eyebrow">'+CARD_POOL.length+
+     ' KỸ NĂNG</span><h2>Thư viện thẻ V0.3</h2>'+
+     '<p class="muted">30 thẻ mới thuộc Độc, Thời Không, Triệu Hồi, Hỗn Mang, Thiên Phú và Phản Ứng. Chọn nhóm để tìm thẻ phù hợp.</p>'+
+     '<div class="library-filters">'+CARD_FILTERS.map(f=>'<button class="'+(collectionFilter===f.value?'active':'')+
+       '" data-filter="'+f.value+'">'+f.label+'</button>').join('')+'</div>'+
+     '<div class="library-count">Đang hiển thị '+filtered.length+' / '+CARD_POOL.length+' thẻ</div>'+
+     '<div class="library-grid">'+filtered.map(id=>{const d=CARDS[id];return '<div class="library-item skill-'+d.icon+'">'+
+      icon(d.icon)+'<div><b>'+d.name+'</b><small>'+d.school+' · '+kindLabel(d.kind)+' · '+d.cost+
+      ' năng lượng</small><p>'+d.desc+'</p></div></div>';}).join('')+'</div></section></div>';
+ }
  if(showLog)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">CHIẾN BÁO</span><h2>Nhật ký chiến đấu</h2><div class="full-log">'+game.log.map(s=>'<p>'+s+'</p>').join('')+'</div></section></div>';
  if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi một ít Máu và trở về bản đồ sau khi chọn một thẻ thưởng.</p><div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
  if(game.phase==="won"||game.phase==="lost")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal finish">'+icon(game.phase==="won"?"star":"shield","end-icon")+'<span class="eyebrow">'+(game.phase==="won"?"HÀNH TRÌNH HOÀN THÀNH":"HÀNH TRÌNH KẾT THÚC")+'</span><h2>'+(game.phase==="won"?"Tinh giới đã được giải phóng":"Hẹn gặp lại tại Tinh Giới")+'</h2><p>'+(game.phase==="won"?"Bạn đã vượt 6 tầng và đánh bại Thủ Vệ Tinh Giới.":"Bạn đã đi tới ải "+game.stage+". Hãy thử một bộ bài và chuỗi kỹ năng mới.")+'</p><div class="finish-stats"><span>ẢI <b>'+game.stage+' / 6</b></span><span>LƯỢT <b>'+game.stats.turns+'</b></span><span>SÁT THƯƠNG <b>'+game.stats.damage+'</b></span><span>THẺ ĐÃ DÙNG <b>'+game.stats.played+'</b></span></div><button class="play-button" data-action="restart">BẮT ĐẦU LƯỢT MỚI →</button></section></div>';
@@ -186,6 +199,7 @@ app.addEventListener("click",event=>{
   const uid=b.getAttribute("data-card");
   if(uid!==null){const id=Number(uid);if(game.selected.includes(id))unqueueCard(game,id);else queueCard(game,id);render();return;}
   const unqueue=b.getAttribute("data-unqueue");if(unqueue!==null){unqueueCard(game,Number(unqueue));render();return;}
+  const filter=b.getAttribute("data-filter");if(filter!==null){if(CARD_FILTERS.some(f=>f.value===filter)){collectionFilter=filter;render();}return;}
   const reward=b.getAttribute("data-reward");if(reward){if(chooseReward(game,reward))render();return;}
   const node=b.getAttribute("data-node");if(node!==null){if(chooseNode(game,node))render();return;}
   const buy=b.getAttribute("data-buy");if(buy!==null){if(buyCard(game,buy))render();return;}
@@ -197,7 +211,7 @@ app.addEventListener("click",event=>{
     case "potion":if(buyPotion(game))render();break;
     case "leave-shop":if(leaveShop(game))render();break;
     case "help":showHelp=true;render();break;
-    case "collection":showCollection=true;render();break;
+    case "collection":collectionFilter="all";showCollection=true;render();break;
     case "log":showLog=true;render();break;
     case "close":showHelp=false;showCollection=false;showLog=false;render();break;
   }
