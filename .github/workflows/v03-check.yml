@@ -1,0 +1,23 @@
+name: V0.3 development checks
+on:
+  push:
+    branches: [dev/v0.3-skills]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check modules
+        run: |
+          node --check src/core.mjs
+          node --check src/expansion.mjs
+          node --check src/journey.mjs
+          node --check src/main.mjs
+      - name: Run all tests
+        run: node --test tests/*.test.mjs
