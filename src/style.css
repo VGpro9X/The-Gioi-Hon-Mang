@@ -87,3 +87,36 @@ button{font:inherit;cursor:pointer}button:disabled{opacity:.54;cursor:not-allowe
  .journey-choice strong{font-size:12px}.journey-choice small{font-size:10px}
  .journey-bottom{flex-direction:column}.journey-shell .top-meta .meta-pill{padding:7px}
 }
+
+
+/* V0.3: additional card families, combat trigger badges and an accessible filterable library. */
+.skill-poison{--school:#9cdda0}.skill-clock{--school:#e4c1ff}.skill-summon{--school:#e7d5a3}
+.fx-poison{color:#b8f8a0}.fx-clock{color:#e8baff}.fx-summon{color:#ffdfb3}
+.status.poison{background:#34683e38;color:#c4f5c3;border-color:#75b47c95}
+.status.summon{background:#8870463b;color:#fbe5b3;border-color:#d2b87994}
+.card.skill-poison .card-art{background:radial-gradient(circle,#6bd77b40 0,transparent 58%),linear-gradient(150deg,#101f27,#243e37)}
+.card.skill-clock .card-art{background:radial-gradient(circle,#c78ff340 0,transparent 58%),linear-gradient(150deg,#1b1934,#343158)}
+.card.skill-summon .card-art{background:radial-gradient(circle,#eecb8540 0,transparent 58%),linear-gradient(150deg,#272538,#363b56)}
+.card-state{letter-spacing:.045em}
+.sidebar{min-height:0}.sidebar .side-title{line-height:1.45}
+.status-row{gap:6px}
+.modal.collection{max-height:92vh}
+.library-filters{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:15px 0 9px}
+.library-filters button{border:1px solid #8e95b577;background:#202945;color:#d1d8f1;
+ padding:9px 12px;border-radius:8px;font-size:11px;font-weight:700}
+.library-filters button:hover{background:#303b5a;border-color:#c4b4fa}
+.library-filters button.active{background:#594d81;border-color:#e5cdfd;color:#fff2df}
+.library-count{color:#a9b7d6;font-size:11px;margin:8px 0 12px}
+.library-item{min-width:0}.library-item>div{min-width:0}
+.library-item small{line-height:1.55}
+@media(max-width:850px){
+ .sidebar{display:block}
+ .sidebar .side-title{margin:13px 0 7px;padding:0}
+ .sidebar .side-title:not(:first-child){border-top:1px solid #ffffff16;padding-top:10px;margin-top:10px}
+ .sidebar .combat-log-title,.sidebar .log-list{display:none}
+ .sidebar .status-row{margin:0 0 8px}
+ .sidebar-footer{display:flex;margin-top:12px}
+ .library-filters{display:flex;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;gap:6px;padding:4px 2px 9px;overscroll-behavior-x:contain}
+ .library-filters button{flex:none;white-space:nowrap;padding:8px 10px}
+}
+@media(max-width:520px){.modal.collection{padding:20px 12px}.library-count{font-size:10px}.sidebar{padding:10px}.status{font-size:9px}}
