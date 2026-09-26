@@ -140,14 +140,15 @@ function render(){
     '<div class="top-actions"><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button><button class="text-btn" data-action="collection">Bộ thẻ</button></div></header>'+
     '<div class="game-layout"><section class="main-column"><div class="arena">'+
     '<div class="arena-heading"><span class="arena-kicker">✦ VỰC SAO HỖN MANG ✦</span><span class="arena-message">'+game.lastMessage+'</span></div>'+
+    (e.kind==='boss'&&e.hp<=e.maxHp/2?'<div class="phase-warning">⚠ THỦ VỆ CHUYỂN PHA · TINH VÂN CUỒNG NỘ</div>':'')+
     '<div class="fighters"><div class="fighter player"><div class="fighter-label">LỮ KHÁCH TINH GIỚI</div><div class="actor-wrap"><div class="actor-glow"></div>'+heroArt+'</div>'+
     '<div class="bar-label"><b>SINH MỆNH</b><strong>'+safe(game.hp)+' / '+game.maxHp+'</strong></div><div class="healthbar"><i style="width:'+ratio(game.hp,game.maxHp)+'%"></i></div>'+
     '<div class="minor-stat">KHIÊN <b>'+game.block+'</b> · KIẾM Ý <b>'+game.power+'</b></div></div>'+
     '<div class="versus" aria-hidden="true"><span>VS</span><div class="versus-line"></div></div>'+
-    '<div class="fighter enemy"><div class="fighter-label">'+e.name.toUpperCase()+'</div><div class="actor-wrap enemy-actor '+e.className+'"><div class="actor-glow"></div>'+enemyArt[e.className]+'</div>'+
+    '<div class="fighter enemy"><div class="fighter-label">'+e.name.toUpperCase()+'</div><div class="actor-wrap enemy-actor '+e.className+(e.kind==='boss'&&e.hp<=e.maxHp/2?' enraged':'')+'"><div class="actor-glow"></div>'+enemyArt[e.className]+'</div>'+
     '<div class="bar-label"><b>SINH MỆNH</b><strong>'+safe(e.hp)+' / '+e.maxHp+'</strong></div><div class="healthbar enemy-health"><i style="width:'+ratio(e.hp,e.maxHp)+'%"></i></div>'+
     '<div class="minor-stat">'+(e.shield?'KHIÊN '+e.shield+' · ':'')+e.subtitle+'</div></div></div>'+
-    '<div class="intent"><span>DỰ ĐỊNH CỦA ĐỊCH</span><strong>'+intent.label+'</strong><em>'+intent.hint+'</em></div>'+
+    '<div class="intent intent-'+intent.kind+'"><span>DỰ ĐỊNH CỦA ĐỊCH</span><strong>'+intent.label+'</strong><em>'+intent.hint+'</em></div>'+
     '<div id="effect-layer" class="effect-layer" aria-hidden="true"></div></div>'+
     '<div class="command"><div class="command-head"><div><span class="eyebrow">CHUỖI THI TRIỂN</span><h2>Chọn bài theo thứ tự</h2></div>'+
     '<div class="energy"><span>NĂNG LƯỢNG</span><div class="energy-orbs">'+Array.from({length:game.maxEnergy},(_,i)=>'<i class="'+(i<game.energy-cost?'full':'')+'"></i>').join('')+'</div><b>'+(game.energy-cost)+' / '+game.maxEnergy+'</b></div></div>'+
@@ -183,7 +184,7 @@ function overlay(){
       ' năng lượng</small><p>'+d.desc+'</p></div></div>';}).join('')+'</div></section></div>';
  }
  if(showLog)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">CHIẾN BÁO</span><h2>Nhật ký chiến đấu</h2><div class="full-log">'+game.log.map(s=>'<p>'+s+'</p>').join('')+'</div></section></div>';
- if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi một ít Máu và trở về bản đồ sau khi chọn một thẻ thưởng.</p><div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
+ if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi một ít Máu và trở về bản đồ sau khi chọn một thẻ thưởng.</p>'+(game.lastRelic&&RELICS[game.lastRelic]?'<div class="relic-win">✦ DI VẬT TINH ANH: '+RELICS[game.lastRelic].name+' · '+RELICS[game.lastRelic].desc+'</div>':'')+'<div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
  if(game.phase==="won"||game.phase==="lost")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal finish">'+icon(game.phase==="won"?"star":"shield","end-icon")+'<span class="eyebrow">'+(game.phase==="won"?"HÀNH TRÌNH HOÀN THÀNH":"HÀNH TRÌNH KẾT THÚC")+'</span><h2>'+(game.phase==="won"?"Tinh giới đã được giải phóng":"Hẹn gặp lại tại Tinh Giới")+'</h2><p>'+(game.phase==="won"?"Bạn đã vượt 6 tầng và đánh bại Thủ Vệ Tinh Giới.":"Bạn đã đi tới ải "+game.stage+". Hãy thử một bộ bài và chuỗi kỹ năng mới.")+'</p><div class="finish-stats"><span>ẢI <b>'+game.stage+' / 6</b></span><span>LƯỢT <b>'+game.stats.turns+'</b></span><span>SÁT THƯƠNG <b>'+game.stats.damage+'</b></span><span>THẺ ĐÃ DÙNG <b>'+game.stats.played+'</b></span></div><button class="play-button" data-action="restart">BẮT ĐẦU LƯỢT MỚI →</button></section></div>';
  return '';
 }
