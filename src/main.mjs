@@ -1,4 +1,5 @@
-import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent, chooseNode, availableNodes, buyCard, buyPotion, leaveShop, takeRest, chooseEvent, EVENTS, serializeGame, restoreGame} from "./core.mjs";
+import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent, chooseNode, availableNodes, buyCard, buyPotion, leaveShop, takeRest, chooseEvent, EVENTS, serializeGame, restoreGame, RELICS, buyRelic, upgradableCards, startShopUpgrade, upgradeCard, cancelUpgrade} from "./core.mjs";
+import {effectMarkup} from "./effects.mjs";
 import {MAP_ROWS,NODE_INFO} from "./journey.mjs";
 const app=document.querySelector("#app");
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -21,8 +22,8 @@ const enemyArt={
  boss:'<svg viewBox="0 0 230 250" class="actor-svg" aria-hidden="true"><defs><linearGradient id="bossGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ae83ed"/><stop offset="1" stop-color="#3d367c"/></linearGradient></defs><path d="M42 212 65 97 112 72 169 96l22 117-73 19z" fill="#222445" stroke="#bc94ef" stroke-width="4"/><path d="M71 91 47 23l55 30 19-36 20 36 46-29-17 67-34 58H97z" fill="url(#bossGrad)" stroke="#efd1ff" stroke-width="4"/><path d="m84 102 25 8 11-6 13 6 25-8-18 29h-37z" fill="#271c43" stroke="#ed7df9" stroke-width="4"/><circle cx="121" cy="83" r="8" fill="#f1cbff"/><path d="M60 160 15 211m157-51 43 51" stroke="#cdb5ff" stroke-width="9"/><path d="m121 147 20 42-20 48-20-48z" fill="#d19fff" stroke="#fee3ff" stroke-width="3"/><path d="M54 22 24 12m151 11 30-11" stroke="#f0d8ff" stroke-width="5"/></svg>'
 };
 const heroArt='<svg viewBox="0 0 230 250" class="actor-svg" aria-hidden="true"><defs><linearGradient id="robe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5c70ab"/><stop offset="1" stop-color="#252943"/></linearGradient></defs><path d="m54 217 15-104 44-25 46 23 20 106z" fill="url(#robe)" stroke="#a0b4f1" stroke-width="4"/><path d="m73 112-26 18-17 89 41-21M166 113l22 18 11 88-40-18" fill="#343e65" stroke="#9cacf1" stroke-width="4"/><path d="m80 92 10-49 26-23 27 19 14 56-22 32H98z" fill="#7982a8" stroke="#c2d6fa" stroke-width="4"/><path d="m91 69 27-13 27 11-7 33-18 14-21-14z" fill="#111c38"/><path d="m99 86 15 4 17-4" stroke="#8fe7ff" stroke-width="5" stroke-linecap="round"/><path d="m114 125 0 93M72 195h96" stroke="#8ba4df" stroke-width="4"/><path d="M186 31 99 189m-14 18 22-26m-31 3 26 26" stroke="#b6ddff" stroke-width="7" stroke-linecap="round"/><path d="m186 31-12 48-19-12z" fill="#92dfff" stroke="#e3f7ff" stroke-width="3"/><path d="m33 215 20-28 26 29M153 217l25-29 24 28" fill="#2a385f" stroke="#a6b4ea" stroke-width="4"/></svg>';
-const SAVE_KEY="tghm-v03-save";
-const loadSaved=()=>{try{return restoreGame(localStorage.getItem(SAVE_KEY))||restoreGame(localStorage.getItem("tghm-v02-save"));}catch{return null;}};
+const SAVE_KEY="tghm-v04-save";
+const loadSaved=()=>{try{return restoreGame(localStorage.getItem(SAVE_KEY))||restoreGame(localStorage.getItem("tghm-v03-save"))||restoreGame(localStorage.getItem("tghm-v02-save"));}catch{return null;}};
 let game=loadSaved()||createGame(),busy=false,showHelp=false,showCollection=false,showLog=false,effectTimer=null,collectionFilter="all";
 const persist=()=>{if(busy||game.phase==="animating")return;try{localStorage.setItem(SAVE_KEY,serializeGame(game));}catch{}};
 function restart(){if(busy||!window.confirm("Bắt đầu hành trình mới? Tiến trình hiện tại trên thiết bị này sẽ bị thay thế."))return;
@@ -37,12 +38,18 @@ const CARD_FILTERS=[
  ...[...new Set(CARD_POOL.map(id=>CARDS[id].school))].map(school=>({value:school,label:school}))
 ];
 const kindLabel=kind=>kind==="passive"?"THIÊN PHÚ":kind==="reaction"?"PHẢN ỨNG":kind==="summon"?"TRIỆU HỒI":"KỸ NĂNG";
+const relicIcon=id=>RELICS[id]?icon(RELICS[id].icon):"";
+function relicStrip(){
+ return '<div class="relic-strip">'+((game.relics||[]).length?game.relics.map(id=>RELICS[id]?
+  '<span class="relic-tag relic-'+RELICS[id].tone+'" title="'+RELICS[id].desc+'">'+relicIcon(id)+
+  '<b>'+RELICS[id].name+'</b></span>':'').join(""):'<span class="muted">Chưa có di vật</span>')+'</div>';
+}
 function cardView(c,compact=false){
   const d=CARDS[c.id],sel=game.selected.includes(c.uid),disabled=game.phase!=="planning"||(!sel&&queuedCost(game)+d.cost>game.energy);
-  return '<button class="card skill-'+d.icon+' rarity-'+d.rarity+(sel?' selected':'')+'" data-card="'+c.uid+'" aria-label="'+d.name+', '+d.cost+' năng lượng, '+d.desc+'" aria-pressed="'+sel+'" '+(disabled?'disabled':'')+'>'+
+  return '<button class="card skill-'+d.icon+' rarity-'+d.rarity+(sel?' selected':'')+(c.level===1?' upgraded':'')+'" data-card="'+c.uid+'" aria-label="'+d.name+', '+d.cost+' năng lượng, '+d.desc+'" aria-pressed="'+sel+'" '+(disabled?'disabled':'')+'>'+
       '<span class="card-cost">'+d.cost+'</span><div class="card-art">'+icon(d.icon)+'</div>'+
-      '<span class="card-school">'+d.school+'</span><strong class="card-name">'+d.name+'</strong>'+
-      (!compact?'<span class="card-desc">'+d.desc+'</span>':'')+'<span class="card-state">'+(sel?'ĐÃ CHỌN':kindLabel(d.kind))+'</span></button>';
+      '<span class="card-school">'+d.school+'</span><strong class="card-name">'+d.name+(c.level===1?' ✦ +1':'')+'</strong>'+
+      (!compact?'<span class="card-desc">'+d.desc+(c.level===1?' · Cường hóa: +5 sát thương hoặc Khiên.':'')+'</span>':'')+'<span class="card-state">'+(sel?'ĐÃ CHỌN':kindLabel(d.kind))+'</span></button>';
 }
 function status(name,n,color){return n?'<span class="status '+color+'">'+name+' <b>'+n+'</b></span>':'';}
 function statsBlock(){
@@ -64,11 +71,12 @@ function statsBlock(){
   (badges(active)||'<span class="muted">Chưa kích hoạt</span>')+'</div>'+
   '<div class="side-title">PHẢN ỨNG ĐÃ CHUẨN BỊ</div><div class="status-row">'+
   (badges(armed)||'<span class="muted">Chưa chuẩn bị</span>')+'</div>'+
+  '<div class="side-title">DI VẬT</div>'+relicStrip()+
   '<div class="side-title combat-log-title">NHẬT KÝ</div><div class="log-list">'+
   game.log.slice(0,5).map((line,i)=>'<p class="'+(i===0?'latest':'')+'">'+line+'</p>').join("")+'</div>';
 }
 function journeyScreen(){
- const header='<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.3</i></small></div></div>'+
+ const header='<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.4</i></small></div></div>'+
  '<div class="top-meta"><span class="meta-pill">MÁU <b>'+game.hp+'/'+game.maxHp+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span></div>'+
  '<div class="top-actions"><button class="text-btn" data-action="collection">Bộ thẻ</button><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button></div></header>';
  const title=game.phase==="map"?"Chọn nhánh tiếp theo":game.phase==="shop"?"Thương nhân tinh giới":game.phase==="rest"?"Điểm nghỉ giữa các vì sao":"Sự kiện bí ẩn";
@@ -117,7 +125,7 @@ function render(){
   const oldScroll=app.querySelector(".hand-scroll")?.scrollLeft||0;
   const e=game.enemy,intent=getIntent(game),cost=queuedCost(game),queue=game.selected.map(uid=>game.hand.find(x=>x.uid===uid)).filter(Boolean);
   app.innerHTML='<div class="shell">'+
-    '<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.3</i></small></div></div>'+
+    '<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.4</i></small></div></div>'+
     '<div class="top-meta"><span class="meta-pill">ẢI <b>'+game.stage+' / '+game.totalStages+'</b></span><span class="meta-pill">LƯỢT <b>'+game.turn+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span><span class="meta-pill desktop-only">HOÀN THÀNH <b>'+getWins()+'</b></span></div>'+
     '<div class="top-actions"><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button><button class="text-btn" data-action="collection">Bộ thẻ</button></div></header>'+
     '<div class="game-layout"><section class="main-column"><div class="arena">'+
@@ -139,7 +147,7 @@ function render(){
     '<section class="hand-panel"><div class="hand-head"><div><span class="eyebrow">BỘ BÀI TRÊN TAY</span><h2>Chọn kỹ năng</h2></div><div class="pile-info"><span>BỘ BÀI <b>'+game.draw.length+'</b></span><span>BÀI BỎ <b>'+game.discard.length+'</b></span></div></div>'+
     '<div class="hand-scroll">'+game.hand.map(c=>cardView(c)).join('')+'</div><p class="mobile-hint">Vuốt ngang để xem hết bài. Nhấn một lá bài để thêm hoặc bỏ khỏi chuỗi.</p></section></section>'+
     '<aside class="sidebar">'+statsBlock()+'<div class="sidebar-footer"><button class="ghost-btn" data-action="log">Xem toàn bộ nhật ký</button><button class="ghost-btn" data-action="restart">Chơi lại</button></div></aside></div>'+
-    '<footer class="footer">THẺ GIỚI: HỖN MANG · V0.3 · TỰ ĐỘNG LƯU TRÊN TRÌNH DUYỆT</footer>'+
+    '<footer class="footer">THẺ GIỚI: HỖN MANG · V0.4 · TỰ ĐỘNG LƯU TRÊN TRÌNH DUYỆT</footer>'+
     '</div>'+overlay();
   persist();
   const scroll=app.querySelector(".hand-scroll");if(scroll)scroll.scrollLeft=oldScroll;
@@ -149,13 +157,13 @@ function choiceCard(id){
   return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+' · '+kindLabel(d.kind)+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
 }
 function overlay(){
- if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Tiến trình V0.2 tự nâng cấp khi mở V0.3.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
+ if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Tiến trình V0.2 tự nâng cấp khi mở V0.4.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
  if(showCollection){
    const filtered=CARD_POOL.filter(id=>collectionFilter==="all"||
      CARDS[id].kind===collectionFilter||CARDS[id].school===collectionFilter);
    return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal collection">'+
      '<button class="modal-close" data-action="close">×</button><span class="eyebrow">'+CARD_POOL.length+
-     ' KỸ NĂNG</span><h2>Thư viện thẻ V0.3</h2>'+
+     ' KỸ NĂNG</span><h2>Thư viện thẻ V0.4</h2>'+
      '<p class="muted">30 thẻ mới thuộc Độc, Thời Không, Triệu Hồi, Hỗn Mang, Thiên Phú và Phản Ứng. Chọn nhóm để tìm thẻ phù hợp.</p>'+
      '<div class="library-filters">'+CARD_FILTERS.map(f=>'<button class="'+(collectionFilter===f.value?'active':'')+
        '" data-filter="'+f.value+'">'+f.label+'</button>').join('')+'</div>'+
