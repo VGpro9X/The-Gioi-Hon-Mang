@@ -1,4 +1,6 @@
-// Thẻ Giới: Hỗn Mang — V0.4. Card upgrades, relic triggers, elite and boss phases.
+// Thẻ Giới: Hỗn Mang — V0.5. Divine Ascension and rare evolutions.
+import {SPECIAL_CARDS,GOD_IDS,MYSTERY_IDS,EVOLUTIONS,EVOLVED_IDS,ascensionOffers,mysteryRate} from './divine.mjs';
+export {GOD_IDS,MYSTERY_IDS,EVOLUTIONS,EVOLVED_IDS,mysteryRate} from './divine.mjs';
 import {RELICS,hasRelic,relicOffer,availableRelics} from './relics.mjs';
 export {RELICS} from './relics.mjs';
 import {EXTRA_CARDS} from './expansion.mjs';
@@ -25,11 +27,13 @@ export const CARDS = {
   phoenix: {name:"Phượng Huyết",cost:2,school:"Huyết",kind:"power",rarity:"rare",desc:"Hồi 12 Máu, nhận 10 Khiên và đặt 2 Xuất Huyết.",icon:"blood"},
   cosmos:  {name:"Tinh Vân Kiếm",cost:3,school:"Hỗn Mang",kind:"attack",rarity:"rare",desc:"Chém 3 lần, mỗi lần 10 sát thương. Mỗi Kiếm Ý tăng 2 sát thương.",icon:"star"},
   riposte: {name:"Phản Chấn",cost:1,school:"Phòng Ngự",kind:"guard",rarity:"uncommon",desc:"Nhận 8 Khiên, gây sát thương bằng nửa số Khiên đang có.",icon:"shield"},
-  ...EXTRA_CARDS
+  ...EXTRA_CARDS,
+  ...SPECIAL_CARDS
 };
 export const CARD_POOL = Object.keys(CARDS);
+export const REGULAR_POOL=CARD_POOL.filter(id=>!SPECIAL_CARDS[id]);
 const START_DECK = ["blade","blade","guard","guard","twin","spark","ember","frost","bleed","surge","leech","shatter"];
-const BONUS_POOL = CARD_POOL.filter(id => !START_DECK.includes(id));
+const BONUS_POOL = REGULAR_POOL.filter(id => !START_DECK.includes(id));
 const ENEMIES = [
   {name:"Ảnh Lang",subtitle:"Tinh thú từ vùng rìa tinh vân",hp:66,attack:9,defend:12,className:"wolf"},
   {name:"Kỵ Sĩ Vực Sâu",subtitle:"Kẻ canh giữ khe nứt hỗn mang",hp:96,attack:12,defend:16,className:"knight"},
@@ -75,11 +79,12 @@ const enemyTemplate=(stage,kind="battle")=>{
 export function createGame(){
  const additions=shuffled(BONUS_POOL).slice(0,2);
  const g={
-  version:"0.4.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
+  version:"0.5.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
   energy:3,maxEnergy:3,power:0,gold:35,route:[],position:1,map:generateMap(),
   summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,extraPlanning:false,
   currentNode:null,shopStock:[],shopRelic:null,shopUpgradeUsed:false,eventId:null,phase:"map",enemy:enemyTemplate(1),
   relics:[],lastRelic:null,upgradeFrom:null,
+  divineOffers:[],ascensionPending:false,ascensionsTaken:0,divineEffects:{thunderTurns:0,reviveReady:false},
   draw:shuffled([...START_DECK,...additions].map(makeCard)),discard:[],hand:[],selected:[],
   reward:[],log:[],lastMessage:"",stats:{damage:0,played:0,turns:0},lastEvent:null
  };
@@ -260,9 +265,14 @@ function wonFight(g){
    if(id){g.relics.push(id);g.lastRelic=id;msg(g,"Tinh Anh rơi di vật: "+RELICS[id].name+".");}
  }
  if(hasRelic(g,"bloodchalice")){heal(g,5);msg(g,"Huyết Ngọc: hồi thêm 5 Máu.");}
+ if(g.currentNode?.kind==="elite"){
+   g.divineOffers=ascensionOffers(g.stage);
+   g.ascensionPending=true;
+   msg(g,"Tinh Anh mở Thần Đàn: sau khi chọn thẻ thưởng, bạn có thể nhận Thần Kỹ hoặc tiến hóa một lá.");
+ }
  g.phase="reward";
- const signature=shuffled(CARD_POOL.filter(id=>["passive","reaction"].includes(CARDS[id].kind)))[0];
- g.reward=shuffled([signature,...shuffled(CARD_POOL.filter(id=>!["blade","guard",signature].includes(id))).slice(0,2)]);
+ const signature=shuffled(REGULAR_POOL.filter(id=>["passive","reaction"].includes(CARDS[id].kind)))[0];
+ g.reward=shuffled([signature,...shuffled(REGULAR_POOL.filter(id=>!["blade","guard",signature].includes(id))).slice(0,2)]);
 }
 
 function applyDamage(g,n,pierce=0){
@@ -322,8 +332,8 @@ export function chooseReward(g,id){
  g.discard.push(makeCard(id));
  const recovery=g.currentNode?.kind==="elite"?9:6;
  g.hp=Math.min(g.maxHp,g.hp+recovery);
- g.reward=[];g.lastRelic=null;g.phase="map";
- msg(g,"Nhận "+CARDS[id].name+", hồi "+recovery+" Máu. Chọn nhánh tiếp theo.");
+ g.reward=[];g.lastRelic=null;g.phase=g.ascensionPending?"ascend":"map";
+ msg(g,"Nhận "+CARDS[id].name+", hồi "+recovery+" Máu."+(g.phase==="ascend"?" Thần Đàn đã mở.":" Chọn nhánh tiếp theo."));
  return true;
 }
 export function chooseNode(g,id){
@@ -335,6 +345,7 @@ export function chooseNode(g,id){
  g.selected=[];g.block=0;g.power=0;
  if(["battle","elite","boss"].includes(node.kind)){
    g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind);
+   g.divineEffects={thunderTurns:0,reviveReady:false};
    if(hasRelic(g,"starward"))g.block+=10;
    g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;g.extraPlanning=false;
    g.draw=shuffled([...g.draw,...g.discard,...g.hand]);g.hand=[];g.discard=[];
@@ -342,7 +353,7 @@ export function chooseNode(g,id){
    msg(g,"Tiến vào "+(node.kind==="boss"?"trận Boss":node.kind==="elite"?"trận Tinh Anh":"trận chiến")+" tầng "+g.stage+".");
  }else if(node.kind==="shop"){
    const signature=shuffled(Object.keys(EXTRA_CARDS))[0];
-   const picks=[signature,...shuffled(CARD_POOL.filter(c=>!["blade","guard",signature].includes(c))).slice(0,2)];
+   const picks=[signature,...shuffled(REGULAR_POOL.filter(c=>!["blade","guard",signature].includes(c))).slice(0,2)];
    g.shopStock=picks.map(id=>({id,price:CARDS[id].rarity==="rare"?64:CARDS[id].rarity==="uncommon"?43:32,sold:false}));
    g.shopRelic=relicOffer(g);g.shopUpgradeUsed=false;
    g.phase="shop";msg(g,"Ghé thăm thương nhân tinh giới.");
@@ -422,7 +433,7 @@ export function chooseEvent(g,choice){
  if(choice==="risk"){
   if(g.eventId==="rift"){
    if(g.hp<=12)return false;
-   g.hp-=12;const pool=CARD_POOL.filter(id=>CARDS[id].rarity==="rare");
+   g.hp-=12;const pool=REGULAR_POOL.filter(id=>CARDS[id].rarity==="rare");
    const id=shuffled(pool)[0];g.discard.push(makeCard(id));msg(g,"Nhận "+CARDS[id].name+", mất 12 Máu.");
   }else if(g.eventId==="meteor"){
    if(g.hp<=9)return false;
@@ -430,7 +441,7 @@ export function chooseEvent(g,choice){
   }else{
    if(g.maxHp<=40)return false;
    g.maxHp-=5;g.hp=Math.min(g.maxHp,g.hp);
-   const pool=CARD_POOL.filter(id=>CARDS[id].rarity==="uncommon");
+   const pool=REGULAR_POOL.filter(id=>CARDS[id].rarity==="uncommon");
    const id=shuffled(pool)[0];g.discard.push(makeCard(id));msg(g,"Nhận "+CARDS[id].name+", mất 5 Máu tối đa.");
   }
  }else if(g.eventId==="meteor"){g.hp=Math.min(g.maxHp,g.hp+10);msg(g,"Hồi phục 10 Máu.");}
@@ -441,7 +452,7 @@ export const serializeGame=g=>JSON.stringify(g);
 export function restoreGame(raw){
  try{
   const g=typeof raw==="string"?JSON.parse(raw):raw;
-  if(!g||!["0.2.0","0.3.0","0.4.0"].includes(g.version)||!["map","planning","reward","shop","rest","upgrade","event","won","lost"].includes(g.phase))return null;
+  if(!g||!["0.2.0","0.3.0","0.4.0","0.5.0"].includes(g.version)||!["map","planning","reward","shop","rest","upgrade","ascend","event","won","lost"].includes(g.phase))return null;
   if(!mapIsValid(g.map)||!Array.isArray(g.route)||g.route.length>6||
    !g.route.every((id,i)=>typeof id==="string"&&g.map.some(n=>n.id===id&&n.row===i)))return null;
   if(!Number.isInteger(g.stage)||g.stage!==g.route.length||g.stage<0||g.stage>6)return null;
