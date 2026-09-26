@@ -362,12 +362,45 @@ export function buyPotion(g){
  g.gold-=24;const healed=Math.min(22,g.maxHp-g.hp);g.hp+=healed;
  msg(g,"Mua thuốc: hồi "+healed+" Máu.");return true;
 }
+export function buyRelic(g,id){
+ if(g.phase!=="shop"||!RELICS[id]||g.shopRelic!==id||hasRelic(g,id)||g.gold<RELICS[id].price)return false;
+ g.gold-=RELICS[id].price;g.relics.push(id);g.shopRelic=null;
+ msg(g,"Mua di vật: "+RELICS[id].name+".");return true;
+}
+export function upgradableCards(g){
+ const seen=new Set();
+ return [...g.draw,...g.discard,...g.hand].filter(card=>{
+   if(seen.has(card.uid)||(card.level||0)!==0)return false;
+   seen.add(card.uid);return Boolean(CARDS[card.id]);
+ }).sort((a,b)=>a.uid-b.uid);
+}
+export function startShopUpgrade(g){
+ if(g.phase!=="shop"||g.shopUpgradeUsed||g.gold<45||!upgradableCards(g).length)return false;
+ g.upgradeFrom="shop";g.phase="upgrade";return true;
+}
+export function upgradeCard(g,uid){
+ if(g.phase!=="upgrade"||!["shop","rest"].includes(g.upgradeFrom))return false;
+ const card=upgradableCards(g).find(c=>c.uid===uid);
+ if(!card)return false;
+ if(g.upgradeFrom==="shop"){
+   if(g.shopUpgradeUsed||g.gold<45)return false;
+   g.gold-=45;g.shopUpgradeUsed=true;
+ }
+ card.level=1;
+ const from=g.upgradeFrom;g.upgradeFrom=null;g.phase=from==="shop"?"shop":"map";
+ msg(g,"Rèn luyện thành công: "+CARDS[card.id].name+" +1.");
+ return true;
+}
 export function leaveShop(g){
  if(g.phase!=="shop")return false;
- g.shopStock=[];g.phase="map";msg(g,"Rời cửa hàng. Chọn nhánh tiếp theo.");return true;
+ g.shopStock=[];g.shopRelic=null;g.phase="map";msg(g,"Rời cửa hàng. Chọn nhánh tiếp theo.");return true;
 }
 export function takeRest(g,choice){
- if(g.phase!=="rest"||!["heal","vitality"].includes(choice))return false;
+ if(g.phase!=="rest"||!["heal","vitality","upgrade"].includes(choice))return false;
+ if(choice==="upgrade"){
+   if(!upgradableCards(g).length)return false;
+   g.upgradeFrom="rest";g.phase="upgrade";return true;
+ }
  if(choice==="heal"){const healed=Math.min(25,g.maxHp-g.hp);g.hp+=healed;msg(g,"Nghỉ ngơi, hồi "+healed+" Máu.");}
  else{g.maxHp+=8;g.hp=Math.min(g.maxHp,g.hp+8);msg(g,"Tu luyện: +8 Máu tối đa và hồi 8 Máu.");}
  g.phase="map";return true;
@@ -404,7 +437,7 @@ export const serializeGame=g=>JSON.stringify(g);
 export function restoreGame(raw){
  try{
   const g=typeof raw==="string"?JSON.parse(raw):raw;
-  if(!g||!["0.2.0","0.3.0"].includes(g.version)||!["map","planning","reward","shop","rest","event","won","lost"].includes(g.phase))return null;
+  if(!g||!["0.2.0","0.3.0","0.4.0"].includes(g.version)||!["map","planning","reward","shop","rest","upgrade","event","won","lost"].includes(g.phase))return null;
   if(!mapIsValid(g.map)||!Array.isArray(g.route)||g.route.length>6||
    !g.route.every((id,i)=>typeof id==="string"&&g.map.some(n=>n.id===id&&n.row===i)))return null;
   if(!Number.isInteger(g.stage)||g.stage!==g.route.length||g.stage<0||g.stage>6)return null;
@@ -414,7 +447,7 @@ export function restoreGame(raw){
   const piles=[g.draw,g.hand,g.discard];
   if(piles.some(p=>!Array.isArray(p)||p.length>300))return null;
   const all=piles.flat();
-  if(!all.every(c=>c&&CARDS[c.id]&&Number.isSafeInteger(c.uid)&&c.uid>0)||
+  if(!all.every(c=>c&&CARDS[c.id]&&Number.isSafeInteger(c.uid)&&c.uid>0&&(c.level===undefined||c.level===0||c.level===1))||
    new Set(all.map(c=>c.uid)).size!==all.length)return null;
   if(!Array.isArray(g.selected)||!g.selected.every(uid=>g.hand.some(c=>c.uid===uid))||
    !Array.isArray(g.reward)||!g.reward.every(id=>CARDS[id])||
@@ -425,12 +458,21 @@ export function restoreGame(raw){
   if(g.phase==="event"&&!EVENTS[g.eventId])return null;
   if(g.stage>0&&(!g.currentNode||!g.map.some(n=>n.id===g.currentNode.id)))return null;
   if(["planning","reward","lost","won"].includes(g.phase)&&(!g.enemy||!Number.isFinite(g.enemy.hp)||g.enemy.hp<0))return null;
-  // Valid V0.2 saves migrate in-place; do not erase user progress.
+  if(g.relics!==undefined&&(!Array.isArray(g.relics)||g.relics.length>6||
+     !g.relics.every(id=>RELICS[id])||new Set(g.relics).size!==g.relics.length))return null;
+  if(g.shopRelic!==undefined&&g.shopRelic!==null&&!RELICS[g.shopRelic])return null;
+  if(g.phase==="upgrade"&&!["shop","rest"].includes(g.upgradeFrom))return null;
+  // Valid V0.2 and V0.3 saves migrate in-place; do not erase user progress.
   g.enemy.poison=Number.isFinite(g.enemy.poison)?g.enemy.poison:0;
   g.summons=g.summons||{wisp:0,golem:0};
   g.passives=g.passives||{};g.reactions=g.reactions||{};
   g.lastOffensive=g.lastOffensive||null;g.lastSwordTurn=g.lastSwordTurn||0;g.extraPlanning=Boolean(g.extraPlanning);
-  g.version="0.3.0";
+  g.relics=g.relics||[];g.shopRelic=g.shopRelic||null;
+  g.shopUpgradeUsed=Boolean(g.shopUpgradeUsed);g.upgradeFrom=g.upgradeFrom||null;g.lastRelic=g.lastRelic||null;
+  if(g.shopRelic===null&&g.phase==="shop"&&g.version!=="0.4.0")g.shopRelic=relicOffer(g);
+  if(g.enemy.kind===undefined&&g.currentNode)g.enemy.kind=g.currentNode.kind;
+  for(const c of all)c.level=c.level||0;
+  g.version="0.4.0";
   nextUid=Math.max(nextUid,...all.map(c=>c.uid+1));return g;
  }catch{return null;}
 }
