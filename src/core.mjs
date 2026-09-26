@@ -153,7 +153,72 @@ export function playCard(g,uid){
     case "phoenix":heal(g,12);block(g,10);e.bleed+=2;break;
     case "cosmos":for(let i=0;i<3;i++)hit(g,10,info.name);break;
     case "riposte":block(g,8);hit(g,Math.floor(g.block/2),info.name,false);break;
+    // Độc: apply stacks, burst poison, or turn poison into a defensive resource.
+    case "venom":hit(g,5,info.name);addStatus(g,"poison",3);break;
+    case "toxinburst":hit(g,8+e.poison*4,info.name);e.poison=Math.floor(e.poison/2);break;
+    case "plague":addStatus(g,"poison",5);addStatus(g,"burn",1);break;
+    case "serpent":{const poisoned=e.poison>0;hit(g,13,info.name);addStatus(g,"poison",poisoned?4:2);break;}
+    case "antivenom":heal(g,6);block(g,Math.min(16,e.poison*2));break;
+    // Thời Không: draw, recover, redirect energy and echo a previous offensive skill.
+    case "quicken":draw(g,1);msg(g,"Gia Tốc: rút thêm 1 thẻ.");break;
+    case "rewind":{
+      const idx=g.discard.findLastIndex(x=>x.uid!==c.uid&&x.id!=="rewind");
+      if(idx>=0&&g.hand.length<9){const [retrieved]=g.discard.splice(idx,1);g.hand.push(retrieved);
+        msg(g,"Hồi Tố: đưa "+CARDS[retrieved.id].name+" trở lại tay.");}
+      else block(g,5);
+      break;
+    }
+    case "chronostep":block(g,9);g.energy=Math.min(g.maxEnergy+1,g.energy+1);break;
+    case "timecut":hit(g,7+Math.min(5,Object.keys(g.passives).filter(id=>g.passives[id]>0).length)*4,info.name);break;
+    case "timeloop":{
+      if(g.lastOffensive){
+        const school=g.lastOffensive.school;hit(g,12,info.name,false);
+        const kind=school==="Lôi"?"mark":school==="Hỏa"?"burn":school==="Băng"?"frost":
+          school==="Huyết"?"bleed":school==="Độc"?"poison":null;
+        if(kind){addStatus(g,kind,1);msg(g,"Vọng Thời: đặt thêm 1 "+school+".");}
+        else hit(g,5,"Dư âm",false);
+      }else block(g,12);
+      break;
+    }
+    // Triệu Hồi: summoned creatures operate at every enemy turn.
+    case "wisp":g.summons.wisp=Math.min(4,g.summons.wisp+1);msg(g,"Triệu Linh: "+g.summons.wisp+" Linh Hồn.");break;
+    case "golem":g.summons.golem=Math.min(3,g.summons.golem+1);msg(g,"Thạch Vệ: "+g.summons.golem+" Thạch Vệ.");break;
+    case "swarm":g.summons.wisp=Math.min(4,g.summons.wisp+2);msg(g,"Quần Linh: "+g.summons.wisp+" Linh Hồn.");break;
+    case "sacrifice":{
+      const had=summonCount(g)>0;
+      if(g.summons.wisp)g.summons.wisp--;else if(g.summons.golem)g.summons.golem--;
+      if(had){hit(g,17,info.name,false);heal(g,7);}else block(g,5);
+      break;
+    }
+    case "spiritbond":hit(g,4+summonCount(g)*5,info.name,false);block(g,summonCount(g)*2);break;
+    // Hybrid combinations using status stacks from several schools.
+    case "steam":hit(g,7+(e.burn+e.frost)*3,info.name);e.burn=Math.max(0,e.burn-1);e.frost=Math.max(0,e.frost-1);break;
+    case "thunderfire":hit(g,11+e.mark*2,info.name);addStatus(g,"mark",1);addStatus(g,"burn",2);break;
+    case "crystalbolt":hit(g,9+e.frost*3,info.name);addStatus(g,"mark",2);break;
+    case "bloodflame":hit(g,10+e.bleed*4,info.name);addStatus(g,"burn",2);heal(g,4);break;
+    case "entropy":{
+      const stacks=Math.min(20,e.poison+e.burn+e.frost+e.bleed+e.mark);
+      hit(g,10+stacks*3,info.name,false);
+      for(const kind of ["poison","burn","frost","bleed","mark"])e[kind]=Math.max(0,e[kind]-1);
+      break;
+    }
+    // Persistent passives are capped at 2 stacks per skill in each battle.
+    case "stormheart":case "pyromancer":case "venomheart":case "swordmaster":case "spiritwell":
+      gainPassive(g,c.id);break;
+    // Reactions last until an actual enemy attack, not a shield action.
+    case "mirrorward":case "thornmail":case "frostward":case "bloodpact":case "counterstrike":
+      readyReaction(g,c.id);
+      if(c.id==="thornmail")block(g,3);
+      break;
   }
+  if(g.passives.stormheart&&info.school==="Lôi"&&info.kind!=="passive")
+    addStatus(g,"mark",g.passives.stormheart);
+  if(g.passives.pyromancer&&info.school==="Hỏa"&&info.kind!=="passive")
+    addStatus(g,"burn",g.passives.pyromancer);
+  if(g.passives.venomheart&&info.kind==="attack")
+    addStatus(g,"poison",g.passives.venomheart);
+  if((info.kind==="attack"||info.kind==="magic")&&!["quicken","rewind","timeloop"].includes(c.id))
+    g.lastOffensive={id:c.id,school:info.school};
   if(g.enemy.hp<=0)wonFight(g);
   return true;
 }
@@ -162,7 +227,9 @@ function wonFight(g){
  if(g.currentNode?.kind==="boss"){g.phase="won";g.reward=[];return;}
  const coins=g.currentNode?.kind==="elite"?43:24;
  g.gold+=coins;msg(g,"Nhận "+coins+" vàng chiến lợi phẩm.");
- g.phase="reward";g.reward=shuffled(CARD_POOL.filter(id=>!["blade","guard"].includes(id))).slice(0,3);
+ g.phase="reward";
+ const signature=shuffled(CARD_POOL.filter(id=>["passive","reaction"].includes(CARDS[id].kind)))[0];
+ g.reward=shuffled([signature,...shuffled(CARD_POOL.filter(id=>!["blade","guard",signature].includes(id))).slice(0,2)]);
 }
 
 function applyDamage(g,n){
@@ -214,11 +281,13 @@ export function chooseNode(g,id){
  g.selected=[];g.block=0;g.power=0;
  if(["battle","elite","boss"].includes(node.kind)){
    g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind);
+   g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;
    g.draw=shuffled([...g.draw,...g.discard,...g.hand]);g.hand=[];g.discard=[];
    g.energy=g.maxEnergy;draw(g,5);g.phase="planning";
    msg(g,"Tiến vào "+(node.kind==="boss"?"trận Boss":node.kind==="elite"?"trận Tinh Anh":"trận chiến")+" tầng "+g.stage+".");
  }else if(node.kind==="shop"){
-   const picks=shuffled(CARD_POOL.filter(c=>!["blade","guard"].includes(c))).slice(0,3);
+   const signature=shuffled(Object.keys(EXTRA_CARDS))[0];
+   const picks=[signature,...shuffled(CARD_POOL.filter(c=>!["blade","guard",signature].includes(c))).slice(0,2)];
    g.shopStock=picks.map(id=>({id,price:CARDS[id].rarity==="rare"?64:CARDS[id].rarity==="uncommon"?43:32,sold:false}));
    g.phase="shop";msg(g,"Ghé thăm thương nhân tinh giới.");
  }else if(node.kind==="rest"){g.phase="rest";msg(g,"Một vùng sao yên bình để nghỉ ngơi.");}
