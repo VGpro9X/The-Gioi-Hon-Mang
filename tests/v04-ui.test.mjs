@@ -7,7 +7,7 @@ test("rest forge UI: select real card, save upgrade and return to map",async()=>
  g.enemy.hp=1;g.hand=[{id:"blade",uid:880001,level:0}];g.selected=[880001];
  assert.ok(playCard(g,880001));assert.ok(chooseReward(g,g.reward[0]));
  const rest=availableNodes(g).find(n=>n.kind==="rest");assert.ok(chooseNode(g,rest.id));
- const storage=new Map([["tghm-v04-save",serializeGame(g)]]);
+ const storage=new Map([["tghm-v05-save",serializeGame(g)]]);
  globalThis.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
  globalThis.window={addEventListener:()=>{},confirm:()=>true};
  const events={};
@@ -25,7 +25,7 @@ test("rest forge UI: select real card, save upgrade and return to map",async()=>
  const selected=app.innerHTML.match(/data-upgrade="(\d+)"/);assert.ok(selected);
  click({"data-upgrade":selected[1]});
  assert.match(app.innerHTML,/route-map/);
- const saved=JSON.parse(storage.get("tghm-v04-save"));
- assert.equal(saved.version,"0.4.0");assert.equal(saved.phase,"map");
+ const saved=JSON.parse(storage.get("tghm-v05-save"));
+ assert.equal(saved.version,"0.5.0");assert.equal(saved.phase,"map");
  assert.equal([...saved.draw,...saved.hand,...saved.discard].filter(c=>c.level===1).length,1);
 });
