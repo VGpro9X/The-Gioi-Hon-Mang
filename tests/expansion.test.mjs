@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {EXTRA_CARDS} from "../src/expansion.mjs";
-import {CARDS,CARD_POOL,createGame,availableNodes,chooseNode,playCard,finishTurn,restoreGame,serializeGame,chooseReward} from "../src/core.mjs";
+import {CARDS,CARD_POOL,createGame,availableNodes,chooseNode,playCard,finishTurn,restoreGame,serializeGame,chooseReward,leaveShop,takeRest,chooseEvent} from "../src/core.mjs";
 
 let uid=780000;
 const start=()=>{
@@ -13,7 +13,7 @@ const start=()=>{
 };
 const setHand=(g,...ids)=>{
  const added=ids.map(id=>({id,uid:uid++}));
- g.hand=added;g.selected=added.map(x=>x.uid);g.energy=ids.reduce((n,id)=>n+CARDS[id].cost,0);
+ g.hand=[...added];g.selected=added.map(x=>x.uid);g.energy=ids.reduce((n,id)=>n+CARDS[id].cost,0);
  return added;
 };
 const single=(g,id)=>{const [c]=setHand(g,id);return playCard(g,c.uid);};
@@ -70,13 +70,18 @@ test("Thiên Phú triggers are battle-long, stacked at two and reset when enteri
  assert.equal(sword.enemy.hp,attackBefore-11);
  sword.enemy.hp=1;sword.energy=3;single(sword,"blade");
  assert.equal(sword.phase,"reward");assert.ok(chooseReward(sword,sword.reward[0]));
- const next=availableNodes(sword).find(n=>n.kind==="shop"||n.kind==="rest"||n.kind==="event");
- if(next){assert.ok(chooseNode(sword,next.id));if(sword.phase==="shop"){sword.phase="map";}}
- // Reset is verified by entering a second battle directly through an available branch
+ // Enter an encounter on row 3 after a non-combat stop on row 2.
  const another=start();another.passives.stormheart=2;another.summons.wisp=3;
- another.enemy.hp=1;another.energy=3;single(another,"blade");chooseReward(another,another.reward[0]);
- another.position=1;const node=availableNodes(another).find(n=>n.kind==="battle");
- if(node){chooseNode(another,node.id);assert.deepEqual(another.passives,{});assert.equal(another.summons.wisp,0);}
+ another.enemy.hp=1;another.energy=3;single(another,"blade");
+ assert.ok(chooseReward(another,another.reward[0]));
+ another.position=1;const waypoint=availableNodes(another)[0];
+ assert.ok(chooseNode(another,waypoint.id));
+ if(another.phase==="shop")assert.ok(leaveShop(another));
+ else if(another.phase==="rest")assert.ok(takeRest(another,"heal"));
+ else if(another.phase==="event")assert.ok(chooseEvent(another,"safe"));
+ const next=availableNodes(another).find(n=>n.kind==="battle"||n.kind==="elite");
+ assert.ok(next);assert.ok(chooseNode(another,next.id));
+ assert.deepEqual(another.passives,{});assert.equal(another.summons.wisp,0);
 });
 test("Phản Ứng does not expire when enemy raises shields; reacts on actual attack",()=>{
  const g=start();single(g,"mirrorward");assert.equal(g.reactions.mirrorward,1);
@@ -101,8 +106,8 @@ test("Thời Không can recycle a spent card, echo elemental spells and draw",()
  playCard(reuse,blade.uid);playCard(reuse,rewind.uid);
  assert.ok(reuse.hand.some(c=>c.id==="blade"));
  const draw=start();draw.draw=[{id:"guard",uid:uid++}];
- const count=draw.hand.length;single(draw,"quicken");
- assert.equal(draw.hand.length,count+1);
+ single(draw,"quicken");
+ assert.equal(draw.hand.length,1);assert.equal(draw.hand[0].id,"guard");
 });
 test("cross-element Entropy uses all five statuses and consumes exactly one of each",()=>{
  const g=start();Object.assign(g.enemy,{burn:2,bleed:3,frost:4,mark:5,poison:6});
