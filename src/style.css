@@ -120,3 +120,5 @@ button{font:inherit;cursor:pointer}button:disabled{opacity:.54;cursor:not-allowe
  .library-filters button{flex:none;white-space:nowrap;padding:8px 10px}
 }
 @media(max-width:520px){.modal.collection{padding:20px 12px}.library-count{font-size:10px}.sidebar{padding:10px}.status{font-size:9px}}
+
+@media(max-width:850px){.sidebar .side-title:nth-of-type(3):not(.combat-log-title){display:block}}
