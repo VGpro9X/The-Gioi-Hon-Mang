@@ -26,8 +26,8 @@
 | V0.1 | Prototype 20 thẻ, chiến đấu chọn chuỗi, layout PC/mobile | Đã hoàn thành; người dùng đồng ý tiếp tục |
 | V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã hoàn thành và được yêu cầu tiếp tục V0.3 |
 | V0.3 | Mở rộng 50 thẻ, Độc/Thời Không/Triệu Hồi, combo, Thiên Phú và Phản Ứng | Đã phát hành và được người dùng chấp thuận tiếp tục V0.4 |
-| V0.4 | 50 hiệu ứng riêng, rèn thẻ +1, 6 Di Vật, Tinh Anh Xuyên Giáp và Boss chuyển pha | Đã triển khai GitHub Pages; 35/35 kiểm thử đạt; dừng chờ người dùng chơi/test |
-| V0.5 | Thần Kỹ, Thần Bí Kỹ, tiến hóa và biến thể kỹ năng hiếm | Chưa bắt đầu |
+| V0.4 | 50 hiệu ứng riêng, rèn thẻ +1, 6 Di Vật, Tinh Anh Xuyên Giáp và Boss chuyển pha | Đã phát hành, người dùng chấp thuận tiếp tục V0.5 |
+| V0.5 | 8 Thần Kỹ, 5 Thần Bí Kỹ, 7 tiến hóa, Thần Đàn sau trận Tinh Anh và tỉ lệ tăng theo tầng | Đã phát triển và kiểm thử; chờ triển khai GitHub Pages và người dùng test |
 | V0.6 | Hành Trình đầy đủ với nhiều khu vực, cân bằng, thành tích và mở khóa | Chưa bắt đầu |
 | V0.7 | Chế độ Sinh Tồn vô hạn, tăng độ khó và thành tích cá nhân | Chưa bắt đầu |
 
@@ -79,7 +79,7 @@
 **V0.3:** Đã phát hành và được người dùng duyệt để chuyển sang V0.4.
 
 
-## V0.4 — CHECKPOINT HIỆN TẠI
+## V0.4 — CHECKPOINT ĐÃ HOÀN THÀNH
 
 - Đồ họa tự tạo bằng CSS và DOM có 50 preset định danh độc lập, gồm vệt chém, lôi điện, cầu lửa, băng tinh, độc vụ, cổng thời gian, triệu hồi, hộ mệnh và hỗn mang. Chế độ giảm chuyển động dựa vào cài đặt hệ thống, giới hạn 3–12 hạt cho mỗi kỹ năng.
 - Rèn thẻ +1 tại điểm nghỉ (miễn phí, thay thế một lựa chọn nghỉ) hoặc lò rèn cửa hàng (45 vàng, tối đa một lần mỗi lượt ghé). Một lá nâng cấp tối đa một lần theo UID; thẻ gây sát thương thêm một đòn 5 sát thương, thẻ hỗ trợ thêm 5 Khiên.
@@ -89,4 +89,17 @@
 - Tự lưu theo phiên bản V0.4, chuyển bản lưu V0.2 và V0.3 hợp lệ mà không mất bộ bài, vàng hoặc tiến trình; mặc định mới đảm bảo tương thích.
 - Kiểm thử hồi quy V0.1–V0.3 và mới cho rèn thẻ, di vật, ý định Tinh Anh/Boss, đồ họa theo thẻ và thao tác UI.
 
-**QUY TẮC DỪNG:** Khi V0.4 triển khai thành công lên GitHub Pages, báo URL và chờ người dùng chơi/test. Chỉ sửa lỗi V0.4 nếu có. Không làm V0.5 trước khi người dùng xác nhận.
+**V0.4:** Đã triển khai GitHub Pages và người dùng yêu cầu tiếp tục V0.5.
+
+
+## V0.5 — CHECKPOINT HIỆN TẠI
+
+- Bổ sung 20 thẻ đặc biệt: **8 Thần Kỹ** theo Lôi, Hỏa, Băng, Huyết, Độc, Thời Không, Triệu Hồi và Hỗn Mang; **5 Thần Bí Kỹ** gồm Vô Tướng Vô Hình, Bất Diệt Thần Hồn, Thời Không Nghịch Lý, Nhật Nguyệt Song Sinh, Hỗn Nguyên Khai Thiên; **7 biến thể Tiến Hóa** từ Kiếm Kích, Lôi Kiếm, Hỏa Cầu, Băng Trảm, Huyết Nhận, Độc Châm và Triệu Linh.
+- Tổng thư viện 70 thẻ; 50 thẻ thường vẫn là nguồn cho bài khởi đầu, rút thưởng thường, cửa hàng và sự kiện. Thần Kỹ/Thần Bí Kỹ chỉ nhận tại Thần Đàn sau khi đánh bại Tinh Anh; Tiến Hóa chỉ nhận qua biến đổi một lá vật lý sẵn có, giữ UID và cấp rèn +1 nếu có.
+- Mỗi lần thắng Tinh Anh tạo Thần Đàn sau khi chọn thẻ thưởng. Chỉ chọn **một** trong ba Thần Kỹ/Thần Bí Kỹ được đề nghị hoặc tiến hóa **một** lá đang sở hữu; có quyền bỏ qua. Tỉ lệ xuất hiện một Thần Bí Kỹ trong ba lựa chọn là 15% ở tầng 3 và 35% ở tầng 5, không bảo đảm người chơi đi nhánh Tinh Anh sẽ nhận nó.
+- Kỹ năng có luật riêng và hữu hạn: Lôi Kiếp tấn công cuối hai lượt kể từ khi thi triển; Bất Diệt chỉ hồi sinh một lần mỗi trận khi chịu đòn chí mạng; Thời Không mở cơ hội chọn thêm bài mà không sao chép chính nó; phối hợp 5 trạng thái cho các chiêu Hỗn Mang.
+- Mỗi kỹ năng đặc biệt và tiến hóa có preset hiệu ứng riêng trong src/effects.mjs, thẻ có viền theo độ hiếm; Thư viện thêm lọc Thần Kỹ, Thần Bí Kỹ và Tiến Hóa. Thần Đàn có giao diện responsive cho điện thoại.
+- Tự động lưu V0.5, phục hồi bản lưu V0.2–V0.4 hợp lệ. Bản lưu cũ đang ở màn hình thưởng Tinh Anh được bổ sung một lần vào Thần Đàn.
+- Kiểm thử hồi quy mọi mốc trước đó và các bài kiểm thử mới: rò rỉ độ hiếm, xác suất theo tầng, giao diện Thần Đàn, tiến hóa duy nhất, hồi sinh có giới hạn, kích hoạt trạng thái, lưu/khôi phục.
+
+**DỪNG sau checkpoint V0.5:** Chạy đầy đủ GitHub Actions và xác nhận GitHub Pages cập nhật. Gửi liên kết công khai để người dùng test; chỉ chuyển sang V0.6 sau khi người dùng xác nhận.
