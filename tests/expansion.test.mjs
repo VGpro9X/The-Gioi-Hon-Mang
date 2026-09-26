@@ -18,8 +18,8 @@ const setHand=(g,...ids)=>{
 };
 const single=(g,id)=>{const [c]=setHand(g,id);return playCard(g,c.uid);};
 
-test("30 expansion skills form a 50-card library, all with valid metadata",()=>{
- assert.equal(Object.keys(EXTRA_CARDS).length,30);assert.equal(CARD_POOL.length,50);
+test("30 expansion skills form a 70-card library, all with valid metadata",()=>{
+ assert.equal(Object.keys(EXTRA_CARDS).length,30);assert.equal(CARD_POOL.length,70);
  const kinds=Object.values(EXTRA_CARDS).map(c=>c.kind);
  assert.equal(kinds.filter(kind=>kind==="passive").length,5);
  assert.equal(kinds.filter(kind=>kind==="reaction").length,5);
@@ -122,7 +122,7 @@ test("V0.2 save is migrated without losing map, cards, route, gold or battle sta
  delete legacy.enemy.poison;delete legacy.summons;delete legacy.passives;delete legacy.reactions;
  delete legacy.lastOffensive;delete legacy.lastSwordTurn;
  const saved=restoreGame(JSON.stringify(legacy));
- assert.ok(saved);assert.equal(saved.version,"0.4.0");assert.equal(saved.gold,76);
+ assert.ok(saved);assert.equal(saved.version,"0.5.0");assert.equal(saved.gold,76);
  assert.equal(saved.enemy.burn,3);assert.equal(saved.enemy.poison,0);
  assert.deepEqual(saved.route,route);assert.equal(saved.phase,"planning");
  assert.equal(saved.draw.length+saved.discard.length+saved.hand.length,14);
