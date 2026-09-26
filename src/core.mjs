@@ -67,7 +67,7 @@ export function createGame(){
  const g={
   version:"0.3.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
   energy:3,maxEnergy:3,power:0,gold:35,route:[],position:1,map:generateMap(),
-  summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,
+  summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,extraPlanning:false,
   currentNode:null,shopStock:[],eventId:null,phase:"map",enemy:enemyTemplate(1),
   draw:shuffled([...START_DECK,...additions].map(makeCard)),discard:[],hand:[],selected:[],
   reward:[],log:[],lastMessage:"",stats:{damage:0,played:0,turns:0},lastEvent:null
