@@ -160,15 +160,15 @@ export function playCard(g,uid){
     case "serpent":{const poisoned=e.poison>0;hit(g,13,info.name);addStatus(g,"poison",poisoned?4:2);break;}
     case "antivenom":heal(g,6);block(g,Math.min(16,e.poison*2));break;
     // Thời Không: draw, recover, redirect energy and echo a previous offensive skill.
-    case "quicken":draw(g,1);msg(g,"Gia Tốc: rút thêm 1 thẻ.");break;
+    case "quicken":{const before=g.hand.length;draw(g,1);if(g.hand.length>before&&g.hand[g.hand.length-1].uid!==c.uid)g.extraPlanning=true;msg(g,"Gia Tốc: rút thêm 1 thẻ.");break;}
     case "rewind":{
       const idx=g.discard.findLastIndex(x=>x.uid!==c.uid&&x.id!=="rewind");
       if(idx>=0&&g.hand.length<9){const [retrieved]=g.discard.splice(idx,1);g.hand.push(retrieved);
-        msg(g,"Hồi Tố: đưa "+CARDS[retrieved.id].name+" trở lại tay.");}
+        msg(g,"Hồi Tố: đưa "+CARDS[retrieved.id].name+" trở lại tay.");g.extraPlanning=true;}
       else block(g,5);
       break;
     }
-    case "chronostep":block(g,9);g.energy=Math.min(g.maxEnergy+1,g.energy+1);break;
+    case "chronostep":block(g,9);g.energy=Math.min(g.maxEnergy+1,g.energy+1);g.extraPlanning=true;break;
     case "timecut":hit(g,7+Math.min(5,Object.keys(g.passives).filter(id=>g.passives[id]>0).length)*4,info.name);break;
     case "timeloop":{
       if(g.lastOffensive){
@@ -296,7 +296,7 @@ export function chooseNode(g,id){
  g.selected=[];g.block=0;g.power=0;
  if(["battle","elite","boss"].includes(node.kind)){
    g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind);
-   g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;
+   g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;g.extraPlanning=false;
    g.draw=shuffled([...g.draw,...g.discard,...g.hand]);g.hand=[];g.discard=[];
    g.energy=g.maxEnergy;draw(g,5);g.phase="planning";
    msg(g,"Tiến vào "+(node.kind==="boss"?"trận Boss":node.kind==="elite"?"trận Tinh Anh":"trận chiến")+" tầng "+g.stage+".");
@@ -388,7 +388,7 @@ export function restoreGame(raw){
   g.enemy.poison=Number.isFinite(g.enemy.poison)?g.enemy.poison:0;
   g.summons=g.summons||{wisp:0,golem:0};
   g.passives=g.passives||{};g.reactions=g.reactions||{};
-  g.lastOffensive=g.lastOffensive||null;g.lastSwordTurn=g.lastSwordTurn||0;
+  g.lastOffensive=g.lastOffensive||null;g.lastSwordTurn=g.lastSwordTurn||0;g.extraPlanning=Boolean(g.extraPlanning);
   g.version="0.3.0";
   nextUid=Math.max(nextUid,...all.map(c=>c.uid+1));return g;
  }catch{return null;}
