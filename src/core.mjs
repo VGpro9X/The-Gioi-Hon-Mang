@@ -1,4 +1,6 @@
-// Thẻ Giới: Hỗn Mang — V0.3. Combat and journey rules.
+// Thẻ Giới: Hỗn Mang — V0.4. Card upgrades, relic triggers, elite and boss phases.
+import {RELICS,hasRelic,relicOffer,availableRelics} from './relics.mjs';
+export {RELICS} from './relics.mjs';
 import {EXTRA_CARDS} from './expansion.mjs';
 import {MAP_ROWS,generateMap,availableNodes,mapIsValid} from "./journey.mjs";
 export {NODE_INFO,availableNodes} from "./journey.mjs";
@@ -35,14 +37,22 @@ const ENEMIES = [
 ];
 let nextUid=1;
 const clone = x => JSON.parse(JSON.stringify(x));
-const makeCard = id => ({id,uid:nextUid++});
+const makeCard = id => ({id,uid:nextUid++,level:0});
 const shuffled = arr => {const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 const msg = (g,s) => {g.log.unshift(s); g.log.length=Math.min(g.log.length,20); g.lastMessage=s;};
-export function getIntent(g) {
-  const cycle = (g.turn-1)%4, e=g.enemy;
-  if(cycle===1) return {kind:"shield",value:e.defend,label:"Dựng kết giới",hint:"Nhận "+e.defend+" Khiên"};
-  if(cycle===3) return {kind:"heavy",value:e.attack+8,label:"Tuyệt kỹ",hint:"Gây "+(e.attack+8)+" sát thương"};
-  return {kind:"attack",value:e.attack+(cycle===2?3:0),label:cycle===2?"Cuồng kích":"Tấn công",hint:"Gây "+(e.attack+(cycle===2?3:0))+" sát thương"};
+export function getIntent(g){
+ const cycle=(g.turn-1)%4,e=g.enemy;
+ if(e.kind==="boss"&&e.hp<=e.maxHp/2){
+   if(cycle===1)return {kind:"fortify",value:e.defend+3,label:"Hấp Thụ Tinh Vân",hint:"Nhận Khiên, hồi 6 Máu"};
+   if(cycle===3)return {kind:"nova",value:e.attack+7,label:"Tinh Vân Bùng Nổ",hint:"Đòn đánh xuyên 25% Khiên"};
+   return {kind:"attack",value:e.attack+4,label:"Cuồng Nộ Tinh Giới",hint:"Gây "+(e.attack+4)+" sát thương"};
+ }
+ if(e.kind==="elite"&&cycle===2)
+   return {kind:"pierce",value:e.attack+4,label:"Xuyên Giáp",hint:"Gây "+(e.attack+4)+" sát thương, xuyên 50% Khiên"};
+ if(cycle===1)return {kind:"shield",value:e.defend,label:"Dựng kết giới",hint:"Nhận "+e.defend+" Khiên"};
+ if(cycle===3)return {kind:"heavy",value:e.attack+8,label:"Tuyệt kỹ",hint:"Gây "+(e.attack+8)+" sát thương"};
+ return {kind:"attack",value:e.attack+(cycle===2?3:0),label:cycle===2?"Cuồng kích":"Tấn công",
+  hint:"Gây "+(e.attack+(cycle===2?3:0))+" sát thương"};
 }
 function draw(g,n) {
   while(n-->0) {
@@ -58,17 +68,18 @@ function draw(g,n) {
 const enemyTemplate=(stage,kind="battle")=>{
  const base=kind==="boss"?ENEMIES[2]:kind==="elite"?ENEMIES[1]:ENEMIES[stage%2===0?1:0];
  const hp=base.hp+(stage-1)*7+(kind==="boss"?40:kind==="elite"?18:0);
- return {...clone(base),name:kind==="elite"?"Tinh Anh: "+base.name:base.name,
+ return {...clone(base),kind,name:kind==="elite"?"Tinh Anh: "+base.name:base.name,
    hp,maxHp:hp,poison:0,attack:base.attack+Math.floor((stage-1)*1.5)+(kind==="elite"?2:0),
    defend:base.defend+stage-1,shield:0,burn:0,bleed:0,frost:0,mark:0};
 };
 export function createGame(){
  const additions=shuffled(BONUS_POOL).slice(0,2);
  const g={
-  version:"0.3.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
+  version:"0.4.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
   energy:3,maxEnergy:3,power:0,gold:35,route:[],position:1,map:generateMap(),
   summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,extraPlanning:false,
-  currentNode:null,shopStock:[],eventId:null,phase:"map",enemy:enemyTemplate(1),
+  currentNode:null,shopStock:[],shopRelic:null,shopUpgradeUsed:false,eventId:null,phase:"map",enemy:enemyTemplate(1),
+  relics:[],lastRelic:null,upgradeFrom:null,
   draw:shuffled([...START_DECK,...additions].map(makeCard)),discard:[],hand:[],selected:[],
   reward:[],log:[],lastMessage:"",stats:{damage:0,played:0,turns:0},lastEvent:null
  };
@@ -296,6 +307,7 @@ export function chooseNode(g,id){
  g.selected=[];g.block=0;g.power=0;
  if(["battle","elite","boss"].includes(node.kind)){
    g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind);
+   if(hasRelic(g,"starward"))g.block+=10;
    g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;g.extraPlanning=false;
    g.draw=shuffled([...g.draw,...g.discard,...g.hand]);g.hand=[];g.discard=[];
    g.energy=g.maxEnergy;draw(g,5);g.phase="planning";
@@ -304,6 +316,7 @@ export function chooseNode(g,id){
    const signature=shuffled(Object.keys(EXTRA_CARDS))[0];
    const picks=[signature,...shuffled(CARD_POOL.filter(c=>!["blade","guard",signature].includes(c))).slice(0,2)];
    g.shopStock=picks.map(id=>({id,price:CARDS[id].rarity==="rare"?64:CARDS[id].rarity==="uncommon"?43:32,sold:false}));
+   g.shopRelic=relicOffer(g);g.shopUpgradeUsed=false;
    g.phase="shop";msg(g,"Ghé thăm thương nhân tinh giới.");
  }else if(node.kind==="rest"){g.phase="rest";msg(g,"Một vùng sao yên bình để nghỉ ngơi.");}
  else{g.eventId=["rift","meteor","echo"][Math.floor(Math.random()*3)];g.phase="event";msg(g,"Phát hiện một sự kiện bất ngờ.");}
