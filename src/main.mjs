@@ -1,4 +1,4 @@
-import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent, chooseNode, availableNodes, buyCard, buyPotion, leaveShop, takeRest, chooseEvent, EVENTS, serializeGame, restoreGame, GOD_IDS, MYSTERY_IDS, EVOLUTIONS, evolutionCandidates, chooseDivine, evolveAtAscension, skipAscension, RELICS, buyRelic, upgradableCards, startShopUpgrade, upgradeCard, cancelUpgrade} from "./core.mjs";
+import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent, chooseNode, availableNodes, buyCard, buyPotion, leaveShop, takeRest, chooseEvent, EVENTS, serializeGame, restoreGame, GOD_IDS, MYSTERY_IDS, EVOLUTIONS, evolutionCandidates, chooseDivine, evolveAtAscension, skipAscension, mysteryRate, RELICS, buyRelic, upgradableCards, startShopUpgrade, upgradeCard, cancelUpgrade} from "./core.mjs";
 import {effectMarkup} from "./effects.mjs";
 import {MAP_ROWS,NODE_INFO} from "./journey.mjs";
 const app=document.querySelector("#app");
@@ -120,7 +120,7 @@ function journeyScreen(){
  }else if(game.phase==="ascend"){
    const mystical=game.divineOffers.some(id=>MYSTERY_IDS.includes(id));
    body='<div class="ascend-intro"><span class="ascend-sigil">✦</span><span class="eyebrow">THẦN ĐÀN · THỨC TỈNH</span>'+
-     '<h2>Chọn một con đường sức mạnh</h2><p>Chiến thắng Tinh Anh cho phép bạn nhận một Thần Kỹ, có cơ hội gặp Thần Bí Kỹ, hoặc tiến hóa trực tiếp một lá đã sở hữu. Mỗi Thần Đàn chỉ chọn một phương án.</p>'+
+     '<h2>Chọn một con đường sức mạnh</h2><p>Chiến thắng Tinh Anh cho phép bạn nhận một Thần Kỹ, có cơ hội gặp Thần Bí Kỹ, hoặc tiến hóa trực tiếp một lá đã sở hữu. Mỗi Thần Đàn chỉ chọn một phương án. Tỉ lệ Thần Bí Kỹ tại tầng này: '+Math.round(mysteryRate(game.stage)*100)+'%.</p>'+
      '<div class="ascend-chance">'+(mystical?'✧ Thần Bí Kỹ xuất hiện trong lượt này!':'✦ Thần Kỹ xuất hiện tại Thần Đàn')+'</div></div>'+
      '<div class="ascend-head"><span class="eyebrow">THẦN KỸ / THẦN BÍ KỸ</span><h3>Chọn một trong ba</h3></div>'+
      '<div class="ascend-options">'+game.divineOffers.map(id=>{const d=CARDS[id];
