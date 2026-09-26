@@ -253,7 +253,7 @@ button{font:inherit;cursor:pointer}button:disabled{opacity:.54;cursor:not-allowe
 .rarity-mystery{--ascend-main:#f5c0ff;--ascend-shadow:#b96fe9}
 .rarity-evolved{--ascend-main:#bff5e8;--ascend-shadow:#5cc6b2}
 .card.rarity-divine,.card.rarity-mystery,.card.rarity-evolved{
-  border:2px solid var(--ascend-main);box-shadow:0 0 19px var(--ascend-shadow,#a09fbe)55,
+  border:2px solid var(--ascend-main);box-shadow:0 0 19px color-mix(in srgb,var(--ascend-shadow,#a09fbe) 40%,transparent),
    inset 0 0 20px #ffffff0b;
 }
 .card.rarity-divine .card-name,.card.rarity-mystery .card-name,.card.rarity-evolved .card-name{
@@ -286,14 +286,14 @@ button{font:inherit;cursor:pointer}button:disabled{opacity:.54;cursor:not-allowe
 .ascend-card{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0;gap:9px;
  padding:21px 15px 15px;min-height:296px;text-align:center;overflow:hidden;
  border:2px solid var(--ascend-main,#d7c0fe);border-radius:18px;
- color:#f9f2fc;background:radial-gradient(circle at 50% 33%,var(--ascend-shadow,#826aad)35,transparent 61%),
+ color:#f9f2fc;background:radial-gradient(circle at 50% 33%,color-mix(in srgb,var(--ascend-shadow,#826aad) 30%,transparent),transparent 61%),
  linear-gradient(145deg,#292744,#171e39);box-shadow:0 0 20px #cda4f02b;
  transition:transform .18s,box-shadow .18s}
 .ascend-card:before{content:"";position:absolute;inset:-80%;pointer-events:none;opacity:.3;
  background:conic-gradient(transparent,var(--ascend-main,#eac2ee),transparent);
  animation:ascendOrbit 9s linear infinite}
 .ascend-card>*{z-index:1;position:relative}
-.ascend-card:hover{transform:translateY(-4px);box-shadow:0 0 26px var(--ascend-shadow,#b095ff)}
+.ascend-card:hover{transform:translateY(-4px);box-shadow:0 0 26px color-mix(in srgb,var(--ascend-shadow,#b095ff) 65%,transparent)}
 .ascend-card .ascend-rarity{align-self:flex-start;color:var(--ascend-main,#efcefe);
  letter-spacing:.11em;font-size:10px;font-weight:900}
 .ascend-card .ascend-icon{display:grid;place-items:center;min-height:74px}
