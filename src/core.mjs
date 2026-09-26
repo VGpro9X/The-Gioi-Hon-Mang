@@ -385,6 +385,42 @@ export function chooseReward(g,id){
  msg(g,"Nhận "+CARDS[id].name+", hồi "+recovery+" Máu."+(g.phase==="ascend"?" Thần Đàn đã mở.":" Chọn nhánh tiếp theo."));
  return true;
 }
+export function evolutionCandidates(g){
+ const unique=new Set();
+ return [...g.draw,...g.discard,...g.hand].filter(c=>{
+   if(!c||!EVOLUTIONS[c.id]||unique.has(c.uid))return false;
+   unique.add(c.uid);return true;
+ }).sort((a,b)=>a.uid-b.uid);
+}
+function closeAscension(g,what){
+ g.ascensionPending=false;g.divineOffers=[];g.phase="map";
+ g.ascensionsTaken=Math.min(2,g.ascensionsTaken+1);
+ msg(g,what+" Chọn nhánh tiếp theo.");
+}
+export function chooseDivine(g,id){
+ if(g.phase!=="ascend"||!g.ascensionPending||
+    !g.divineOffers.includes(id)||!([...GOD_IDS,...MYSTERY_IDS].includes(id)))return false;
+ // A selected God Skill is a *new* card. It goes to the discard pile to
+ // enter the draw cycle on the next battle, preserving its unique UID.
+ g.discard.push(makeCard(id));
+ closeAscension(g,"Thức tỉnh "+CARDS[id].name+"!");
+ return true;
+}
+export function evolveAtAscension(g,uid){
+ if(g.phase!=="ascend"||!g.ascensionPending)return false;
+ const chosen=evolutionCandidates(g).find(c=>c.uid===uid);
+ if(!chosen)return false;
+ const evolved=EVOLUTIONS[chosen.id];
+ // Evolution changes one physical card, retains rank and UID, never creates a duplicate.
+ chosen.id=evolved.id;
+ closeAscension(g,"Tiến hóa "+CARDS[evolved.id].name+"!");
+ return true;
+}
+export function skipAscension(g){
+ if(g.phase!=="ascend"||!g.ascensionPending)return false;
+ closeAscension(g,"Rời Thần Đàn.");
+ return true;
+}
 export function chooseNode(g,id){
  if(g.phase!=="map")return false;
  const node=availableNodes(g).find(n=>n.id===id);
@@ -536,7 +572,24 @@ export function restoreGame(raw){
   if(g.shopRelic===null&&g.phase==="shop"&&g.version!=="0.4.0")g.shopRelic=relicOffer(g);
   if(g.enemy.kind===undefined&&g.currentNode)g.enemy.kind=g.currentNode.kind;
   for(const c of all)c.level=c.level||0;
-  g.version="0.4.0";
+  // Existing mid-reward elite saves can visit the new altar once.
+  if(g.divineOffers===undefined&&g.phase==="reward"&&g.currentNode?.kind==="elite"){
+    g.ascensionPending=true;g.divineOffers=ascensionOffers(g.stage);
+  }
+  if(g.divineOffers===undefined)g.divineOffers=[];
+  if(g.ascensionPending===undefined)g.ascensionPending=false;
+  if(g.ascensionsTaken===undefined)g.ascensionsTaken=0;
+  if(g.divineEffects===undefined)g.divineEffects={thunderTurns:0,reviveReady:false,reviveUsed:false};
+  g.divineEffects.reviveUsed=Boolean(g.divineEffects.reviveUsed);
+  if(!Array.isArray(g.divineOffers)||g.divineOffers.length>3||
+     !g.divineOffers.every(id=>[...GOD_IDS,...MYSTERY_IDS].includes(id))||
+     new Set(g.divineOffers).size!==g.divineOffers.length||
+     typeof g.ascensionPending!=="boolean"||
+     !Number.isInteger(g.ascensionsTaken)||g.ascensionsTaken<0||g.ascensionsTaken>2||
+     !Number.isInteger(g.divineEffects.thunderTurns)||g.divineEffects.thunderTurns<0||g.divineEffects.thunderTurns>2||
+     typeof g.divineEffects.reviveReady!=="boolean"||typeof g.divineEffects.reviveUsed!=="boolean"||
+     (g.phase==="ascend"&&(!g.ascensionPending||g.divineOffers.length!==3)))return null;
+  g.version="0.5.0";
   nextUid=Math.max(nextUid,...all.map(c=>c.uid+1));return g;
  }catch{return null;}
 }
