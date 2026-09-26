@@ -122,6 +122,13 @@ const gainPassive=(g,id)=>{
  if(current<2){g.passives[id]=current+1;msg(g,CARDS[id].name+" kích hoạt (tầng "+(current+1)+"/2).");}
  else{block(g,6);msg(g,CARDS[id].name+" đã tối đa, chuyển thành 6 Khiên.");}
 };
+// A forged card gains one rank (+5 direct damage on eligible attacks / +5 shield on utility).
+// Utility magic does not become an extra attack; bonus is non-recursive.
+const OFFENSIVE_UPGRADE=new Set([
+ "blade","twin","spark","ember","frost","bleed","leech","shatter","chain","ignite","reap",
+ "storm","meteor","glacier","cosmos","riposte","venom","toxinburst","serpent","timecut",
+ "timeloop","sacrifice","spiritbond","steam","thunderfire","crystalbolt","bloodflame","entropy"
+]);
 const readyReaction=(g,id)=>{
  g.reactions[id]=Math.min(2,(g.reactions[id]||0)+1);
  msg(g,CARDS[id].name+" sẵn sàng ("+g.reactions[id]+").");
@@ -228,6 +235,15 @@ export function playCard(g,uid){
     addStatus(g,"burn",g.passives.pyromancer);
   if(g.passives.venomheart&&info.kind==="attack")
     addStatus(g,"poison",g.passives.venomheart);
+  if(hasRelic(g,"thunderseal")&&info.school==="Lôi")addStatus(g,"mark",1);
+  if(hasRelic(g,"embercore")&&info.school==="Hỏa")addStatus(g,"burn",1);
+  if(hasRelic(g,"toxincore")&&info.school==="Độc")addStatus(g,"poison",1);
+  if(c.level===1){
+    if(OFFENSIVE_UPGRADE.has(c.id) && (c.id!=="timeloop"||g.lastOffensive) &&
+       (c.id!=="sacrifice"||summonCount(g)>0))
+      attack(g,5,"Cường hóa "+info.name);
+    else block(g,5);
+  }
   if((info.kind==="attack"||info.kind==="magic")&&!["quicken","rewind","timeloop"].includes(c.id))
     g.lastOffensive={id:c.id,school:info.school};
   if(g.enemy.hp<=0)wonFight(g);
@@ -238,6 +254,12 @@ function wonFight(g){
  if(g.currentNode?.kind==="boss"){g.phase="won";g.reward=[];return;}
  const coins=g.currentNode?.kind==="elite"?43:24;
  g.gold+=coins;msg(g,"Nhận "+coins+" vàng chiến lợi phẩm.");
+ g.lastRelic=null;
+ if(g.currentNode?.kind==="elite"){
+   const id=relicOffer(g);
+   if(id){g.relics.push(id);g.lastRelic=id;msg(g,"Tinh Anh rơi di vật: "+RELICS[id].name+".");}
+ }
+ if(hasRelic(g,"bloodchalice")){heal(g,5);msg(g,"Huyết Ngọc: hồi thêm 5 Máu.");}
  g.phase="reward";
  const signature=shuffled(CARD_POOL.filter(id=>["passive","reaction"].includes(CARDS[id].kind)))[0];
  g.reward=shuffled([signature,...shuffled(CARD_POOL.filter(id=>!["blade","guard",signature].includes(id))).slice(0,2)]);
