@@ -145,7 +145,7 @@ export function playCard(g,uid){
   g.energy-=info.cost;g.discard.push(c);g.stats.played++;
   msg(g,"Thi triển "+info.name+".");
   g.lastEvent={kind:info.kind,school:info.school};
-  const e=g.enemy;
+  const e=g.enemy,hadSummon=summonCount(g)>0;
   if(info.school==="Kiếm Đạo"&&info.kind==="attack"&&g.passives.swordmaster&&g.lastSwordTurn!==g.turn){
     g.power+=g.passives.swordmaster;g.lastSwordTurn=g.turn;
     msg(g,"Kiếm Tâm: +"+g.passives.swordmaster+" Kiếm Ý.");
@@ -240,7 +240,7 @@ export function playCard(g,uid){
   if(hasRelic(g,"toxincore")&&info.school==="Độc")addStatus(g,"poison",1);
   if(c.level===1){
     if(OFFENSIVE_UPGRADE.has(c.id) && (c.id!=="timeloop"||g.lastOffensive) &&
-       (c.id!=="sacrifice"||summonCount(g)>0))
+       (c.id!=="sacrifice"||hadSummon))
       attack(g,5,"Cường hóa "+info.name);
     else block(g,5);
   }
