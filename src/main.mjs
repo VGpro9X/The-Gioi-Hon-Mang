@@ -168,7 +168,7 @@ function choiceCard(id){
   return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+' · '+kindLabel(d.kind)+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
 }
 function overlay(){
- if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Tiến trình V0.2 tự nâng cấp khi mở V0.4.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
+ if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Có thể rèn thẻ +1 ở Điểm Nghỉ hoặc cửa hàng, thu thập 6 Di Vật và chống Xuyên Giáp của Tinh Anh hoặc Boss cuồng nộ. Bản lưu V0.2–V0.3 vẫn tiếp tục được.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
  if(showCollection){
    const filtered=CARD_POOL.filter(id=>collectionFilter==="all"||
      CARDS[id].kind===collectionFilter||CARDS[id].school===collectionFilter);
@@ -189,11 +189,17 @@ function overlay(){
  return '';
 }
 function fx(card){
-  const layer=app.querySelector("#effect-layer");if(!layer)return;
-  const type=card?.icon||"sword",name=card?.name||"HIT";
-  layer.innerHTML='<div class="fx fx-'+type+'">'+icon(type)+'<span>'+name+'</span></div>';
-  layer.classList.add("active");clearTimeout(effectTimer);
-  effectTimer=setTimeout(()=>{layer.classList.remove("active");layer.innerHTML="";},540);
+ const layer=app.querySelector("#effect-layer");
+ if(!layer||!card||!CARDS[card.id])return;
+ clearTimeout(effectTimer);
+ layer.innerHTML=effectMarkup(card.id,CARDS[card.id].name,card.level===1);
+ layer.classList.add("active");
+ effectTimer=setTimeout(()=>{layer.classList.remove("active");layer.innerHTML="";},680);
+}
+function floatDamage(amount){
+ const layer=app.querySelector("#effect-layer");
+ if(!layer||amount<=0)return;
+ if(layer.insertAdjacentHTML)layer.insertAdjacentHTML("beforeend",'<span class="impact-number">−'+safe(amount)+'</span>');
 }
 async function run(){
   if(busy || game.phase!=="planning")return;
@@ -201,7 +207,7 @@ async function run(){
   for(const uid of chosen){
     const c=game.hand.find(x=>x.uid===uid);
     if(!c)continue;
-    fx(CARDS[c.id]);await wait(310);playCard(game,uid);render();await wait(370);
+    fx(c);await wait(210);const enemyBefore=game.enemy.hp;playCard(game,uid);const dealt=Math.max(0,enemyBefore-game.enemy.hp);render();fx(c);floatDamage(dealt);await wait(420);
     if(game.phase!=="animating")break;
   }
   if(game.phase==="animating"&&game.extraPlanning){
@@ -229,6 +235,8 @@ app.addEventListener("click",event=>{
   if(uid!==null){const id=Number(uid);if(game.selected.includes(id))unqueueCard(game,id);else queueCard(game,id);render();return;}
   const unqueue=b.getAttribute("data-unqueue");if(unqueue!==null){unqueueCard(game,Number(unqueue));render();return;}
   const filter=b.getAttribute("data-filter");if(filter!==null){if(CARD_FILTERS.some(f=>f.value===filter)){collectionFilter=filter;render();}return;}
+  const relic=b.getAttribute("data-buy-relic");if(relic!==null){if(buyRelic(game,relic))render();return;}
+  const upgrade=b.getAttribute("data-upgrade");if(upgrade!==null){if(upgradeCard(game,Number(upgrade)))render();return;}
   const reward=b.getAttribute("data-reward");if(reward){if(chooseReward(game,reward))render();return;}
   const node=b.getAttribute("data-node");if(node!==null){if(chooseNode(game,node))render();return;}
   const buy=b.getAttribute("data-buy");if(buy!==null){if(buyCard(game,buy))render();return;}
@@ -238,6 +246,8 @@ app.addEventListener("click",event=>{
     case "play":run();break;
     case "restart":restart();break;
     case "potion":if(buyPotion(game))render();break;
+    case "shop-upgrade":if(startShopUpgrade(game))render();break;
+    case "cancel-upgrade":if(cancelUpgrade(game))render();break;
     case "leave-shop":if(leaveShop(game))render();break;
     case "help":showHelp=true;render();break;
     case "collection":collectionFilter="all";showCollection=true;render();break;
