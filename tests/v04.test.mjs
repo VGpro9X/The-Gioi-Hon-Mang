@@ -19,9 +19,9 @@ const beat=g=>{
  g.enemy.hp=1;play(g,"blade");assert.equal(g.phase,"reward");
  assert.ok(chooseReward(g,g.reward[0]));assert.equal(g.phase,"map");
 };
-test("each of 50 cards has a bounded, deterministic, independently keyed VFX preset",()=>{
- assert.equal(CARD_POOL.length,50);
- assert.equal(Object.keys(CARD_FX).length,50);
+test("each of 70 cards has a bounded, deterministic, independently keyed VFX preset",()=>{
+ assert.equal(CARD_POOL.length,70);
+ assert.equal(Object.keys(CARD_FX).length,70);
  for(const id of CARD_POOL){
    assert.deepEqual(effectPreset(id),CARD_FX[id]);
    assert.ok(CARD_FX[id].form);assert.ok(CARD_FX[id].tone);
@@ -113,7 +113,7 @@ test("both 0.2 and 0.3 save snapshots migrate with new fields and upgraded level
    delete old.relics;delete old.shopRelic;delete old.shopUpgradeUsed;delete old.lastRelic;delete old.upgradeFrom;
    for(const pile of [old.draw,old.hand,old.discard])for(const c of pile)delete c.level;
    const result=restoreGame(JSON.stringify(old));
-   assert.ok(result);assert.equal(result.version,"0.4.0");
+   assert.ok(result);assert.equal(result.version,"0.5.0");
    assert.deepEqual(result.relics,[]);assert.ok(result.draw.every(c=>c.level===0));
    assert.deepEqual(result.route,base.route);
  }
