@@ -149,7 +149,7 @@ function choiceCard(id){
   return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+' · '+kindLabel(d.kind)+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
 }
 function overlay(){
- if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Tiến trình V0.2 tự nâng cấp khi mở V0.3.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
+ if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Tiến trình V0.2 tự nâng cấp khi mở V0.3.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
  if(showCollection){
    const filtered=CARD_POOL.filter(id=>collectionFilter==="all"||
      CARDS[id].kind===collectionFilter||CARDS[id].school===collectionFilter);
@@ -184,6 +184,16 @@ async function run(){
     if(!c)continue;
     fx(CARDS[c.id]);await wait(310);playCard(game,uid);render();await wait(370);
     if(game.phase!=="animating")break;
+  }
+  if(game.phase==="animating"&&game.extraPlanning){
+    const canContinue=game.hand.some(c=>CARDS[c.id].cost<=game.energy);
+    game.extraPlanning=false;
+    if(canContinue){
+      game.phase="planning";game.selected=[];
+      game.lastMessage="Rút / hoàn lại thẻ thành công. Bạn có thể lập thêm một chuỗi trong cùng lượt.";
+      game.log.unshift(game.lastMessage);game.log.length=Math.min(game.log.length,20);
+      busy=false;render();return;
+    }
   }
   if(game.phase==="animating"){
     await wait(240);finishTurn(game);render();
