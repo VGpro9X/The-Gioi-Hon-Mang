@@ -1,4 +1,5 @@
-import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent} from "./core.mjs";
+import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent, chooseNode, availableNodes, buyCard, buyPotion, leaveShop, takeRest, chooseEvent, EVENTS, serializeGame, restoreGame} from "./core.mjs";
+import {MAP_ROWS,NODE_INFO} from "./journey.mjs";
 const app=document.querySelector("#app");
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const icons={
@@ -17,7 +18,13 @@ const enemyArt={
  boss:'<svg viewBox="0 0 230 250" class="actor-svg" aria-hidden="true"><defs><linearGradient id="bossGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ae83ed"/><stop offset="1" stop-color="#3d367c"/></linearGradient></defs><path d="M42 212 65 97 112 72 169 96l22 117-73 19z" fill="#222445" stroke="#bc94ef" stroke-width="4"/><path d="M71 91 47 23l55 30 19-36 20 36 46-29-17 67-34 58H97z" fill="url(#bossGrad)" stroke="#efd1ff" stroke-width="4"/><path d="m84 102 25 8 11-6 13 6 25-8-18 29h-37z" fill="#271c43" stroke="#ed7df9" stroke-width="4"/><circle cx="121" cy="83" r="8" fill="#f1cbff"/><path d="M60 160 15 211m157-51 43 51" stroke="#cdb5ff" stroke-width="9"/><path d="m121 147 20 42-20 48-20-48z" fill="#d19fff" stroke="#fee3ff" stroke-width="3"/><path d="M54 22 24 12m151 11 30-11" stroke="#f0d8ff" stroke-width="5"/></svg>'
 };
 const heroArt='<svg viewBox="0 0 230 250" class="actor-svg" aria-hidden="true"><defs><linearGradient id="robe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5c70ab"/><stop offset="1" stop-color="#252943"/></linearGradient></defs><path d="m54 217 15-104 44-25 46 23 20 106z" fill="url(#robe)" stroke="#a0b4f1" stroke-width="4"/><path d="m73 112-26 18-17 89 41-21M166 113l22 18 11 88-40-18" fill="#343e65" stroke="#9cacf1" stroke-width="4"/><path d="m80 92 10-49 26-23 27 19 14 56-22 32H98z" fill="#7982a8" stroke="#c2d6fa" stroke-width="4"/><path d="m91 69 27-13 27 11-7 33-18 14-21-14z" fill="#111c38"/><path d="m99 86 15 4 17-4" stroke="#8fe7ff" stroke-width="5" stroke-linecap="round"/><path d="m114 125 0 93M72 195h96" stroke="#8ba4df" stroke-width="4"/><path d="M186 31 99 189m-14 18 22-26m-31 3 26 26" stroke="#b6ddff" stroke-width="7" stroke-linecap="round"/><path d="m186 31-12 48-19-12z" fill="#92dfff" stroke="#e3f7ff" stroke-width="3"/><path d="m33 215 20-28 26 29M153 217l25-29 24 28" fill="#2a385f" stroke="#a6b4ea" stroke-width="4"/></svg>';
-let game=createGame(),busy=false,showHelp=false,showCollection=false,showLog=false,effectTimer=null;
+const SAVE_KEY="tghm-v02-save";
+const loadSaved=()=>{try{return restoreGame(localStorage.getItem(SAVE_KEY));}catch{return null;}};
+let game=loadSaved()||createGame(),busy=false,showHelp=false,showCollection=false,showLog=false,effectTimer=null;
+const persist=()=>{if(busy||game.phase==="animating")return;try{localStorage.setItem(SAVE_KEY,serializeGame(game));}catch{}};
+function restart(){if(busy||!window.confirm("Bắt đầu hành trình mới? Tiến trình hiện tại trên thiết bị này sẽ bị thay thế."))return;
+  game=createGame();showHelp=false;showCollection=false;showLog=false;render();}
+
 const safe=n=>Math.max(0,Math.round(n));
 const ratio=(value,max)=>Math.max(0,Math.min(100,(value/max)*100));
 const saveWin=()=>{try{const best=Number(localStorage.getItem("tghm-v01-clears")||0);localStorage.setItem("tghm-v01-clears",String(best+1));}catch{}};
@@ -37,12 +44,58 @@ function statsBlock(){
    '</div><div class="side-title">NHÂN VẬT</div><div class="status-row">'+(status("Kiếm Ý",game.power,"power")+status("Khiên",game.block,"plain")||'<span class="muted">Chưa có hiệu ứng</span>')+'</div>'+
    '<div class="side-title">NHẬT KÝ</div><div class="log-list">'+game.log.slice(0,5).map((line,i)=>'<p class="'+(i===0?'latest':'')+'">'+line+'</p>').join("")+'</div>';
 }
+function journeyScreen(){
+ const header='<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.2</i></small></div></div>'+
+ '<div class="top-meta"><span class="meta-pill">MÁU <b>'+game.hp+'/'+game.maxHp+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span></div>'+
+ '<div class="top-actions"><button class="text-btn" data-action="collection">Bộ thẻ</button><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button></div></header>';
+ const title=game.phase==="map"?"Chọn nhánh tiếp theo":game.phase==="shop"?"Thương nhân tinh giới":game.phase==="rest"?"Điểm nghỉ giữa các vì sao":"Sự kiện bí ẩn";
+ let body="";
+ if(game.phase==="map"){
+   const active=availableNodes(game).map(n=>n.id),past=game.route;
+   body='<p class="journey-hint">Đi từ dưới lên. Mỗi tầng chỉ có thể chọn điểm cùng cột hoặc cột kế bên vị trí vừa đi. Mỗi lượt chơi có sơ đồ khác nhau.</p><div class="route-map">'+
+   MAP_ROWS.map((_,i)=>MAP_ROWS.length-1-i).map(row=>'<div class="route-row"><span class="route-floor">TẦNG '+(row+1)+'</span><div class="route-nodes">'+
+     [0,1,2].map(col=>{const n=game.map.find(x=>x.row===row&&x.col===col);
+       if(!n)return '<span class="route-empty"></span>';
+       const selectable=active.includes(n.id),done=past.includes(n.id);
+       return '<button class="route-node route-'+n.kind+(selectable?' is-available':'')+(done?' is-past':'')+'" data-node="'+n.id+'" '+(selectable?'':'disabled')+'>'+
+         '<span class="route-symbol">'+NODE_INFO[n.kind].symbol+'</span><strong>'+NODE_INFO[n.kind].name+'</strong><small>'+
+         (done?'Đã đi qua':selectable?'CHỌN ĐIỂM NÀY':row<game.route.length?'Nhánh khác':NODE_INFO[n.kind].detail)+'</small></button>';
+     }).join('')+'</div></div>').join('<div class="route-link">↑</div>')+'</div>';
+ }else if(game.phase==="shop"){
+   body='<p class="journey-hint">Vàng giữ lại giữa các tầng. Mỗi lá ở cửa hàng chỉ mua được một lần.</p><div class="journey-items">'+
+   game.shopStock.map(item=>{const card=CARDS[item.id];
+     return '<div class="journey-item"><div class="journey-item-icon">'+icon(card.icon)+'</div><div><h3>'+card.name+'</h3><p>'+card.desc+'</p><small>'+card.school+' · '+card.rarity+'</small></div>'+
+      '<button data-buy="'+item.id+'" '+(item.sold||game.gold<item.price?'disabled':'')+'>'+(item.sold?'ĐÃ MUA':item.price+' vàng')+'</button></div>';
+   }).join('')+
+   '<div class="journey-item"><div class="journey-item-icon">'+icon("blood")+'</div><div><h3>Thuốc Hồi Phục</h3><p>Hồi tối đa 22 Máu.</p></div>'+
+   '<button data-action="potion" '+(game.gold<24||game.hp===game.maxHp?'disabled':'')+'>24 vàng</button></div></div>'+
+   '<button class="play-button journey-continue" data-action="leave-shop">RỜI CỬA HÀNG →</button>';
+ }else if(game.phase==="rest"){
+   body='<p class="journey-hint">Chỉ chọn một hình thức nghỉ ngơi.</p><div class="journey-choice-grid">'+
+   '<button class="journey-choice" data-rest="heal"><span class="choice-icon">☘</span><strong>Tĩnh Dưỡng</strong><small>Hồi tối đa 25 Máu.</small></button>'+
+   '<button class="journey-choice" data-rest="vitality"><span class="choice-icon">✧</span><strong>Rèn Luyện Thể Phách</strong><small>Tăng 8 Máu tối đa và hồi 8 Máu.</small></button></div>';
+ }else{
+   const event=EVENTS[game.eventId];
+   body='<div class="journey-event"><div class="event-sigil">◈</div><h2>'+event.title+'</h2><p>'+event.desc+'</p></div>'+
+     '<div class="journey-choice-grid">'+event.choices.map(choice=>{
+       const unavailable=choice.id==="risk"&&(game.eventId==="rift"&&game.hp<=12||game.eventId==="meteor"&&game.hp<=9||game.eventId==="echo"&&game.maxHp<=40);
+       return '<button class="journey-choice" data-event="'+choice.id+'" '+(unavailable?'disabled':'')+'><strong>'+choice.text+'</strong>'+
+        (unavailable?'<small>Không đủ sinh lực để lựa chọn</small>':'')+'</button>';
+     }).join('')+'</div>';
+ }
+ return '<div class="shell journey-shell">'+header+'<div class="journey-top"><div><span class="eyebrow">HÀNH TRÌNH TINH GIỚI</span><h1>'+title+'</h1><p class="muted">'+game.lastMessage+'</p></div>'+
+   '<button class="ghost-btn" data-action="restart">Chơi mới</button></div>'+body+
+   '<div class="journey-bottom"><span>✦ Tiến trình tự động lưu trên trình duyệt này.</span><span>Đã đi '+game.route.length+' / 6 tầng</span></div></div>'+
+   (showHelp||showCollection||showLog?overlay():'');
+}
+
 function render(){
+  if(["map","shop","rest","event"].includes(game.phase)){app.innerHTML=journeyScreen();persist();return;}
   const oldScroll=app.querySelector(".hand-scroll")?.scrollLeft||0;
   const e=game.enemy,intent=getIntent(game),cost=queuedCost(game),queue=game.selected.map(uid=>game.hand.find(x=>x.uid===uid)).filter(Boolean);
   app.innerHTML='<div class="shell">'+
-    '<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.1</i></small></div></div>'+
-    '<div class="top-meta"><span class="meta-pill">ẢI <b>'+game.stage+' / '+game.totalStages+'</b></span><span class="meta-pill">LƯỢT <b>'+game.turn+'</b></span><span class="meta-pill desktop-only">HOÀN THÀNH <b>'+getWins()+'</b></span></div>'+
+    '<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.2</i></small></div></div>'+
+    '<div class="top-meta"><span class="meta-pill">ẢI <b>'+game.stage+' / '+game.totalStages+'</b></span><span class="meta-pill">LƯỢT <b>'+game.turn+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span><span class="meta-pill desktop-only">HOÀN THÀNH <b>'+getWins()+'</b></span></div>'+
     '<div class="top-actions"><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button><button class="text-btn" data-action="collection">Bộ thẻ</button></div></header>'+
     '<div class="game-layout"><section class="main-column"><div class="arena">'+
     '<div class="arena-heading"><span class="arena-kicker">✦ VỰC SAO HỖN MANG ✦</span><span class="arena-message">'+game.lastMessage+'</span></div>'+
@@ -63,8 +116,9 @@ function render(){
     '<section class="hand-panel"><div class="hand-head"><div><span class="eyebrow">BỘ BÀI TRÊN TAY</span><h2>Chọn kỹ năng</h2></div><div class="pile-info"><span>BỘ BÀI <b>'+game.draw.length+'</b></span><span>BÀI BỎ <b>'+game.discard.length+'</b></span></div></div>'+
     '<div class="hand-scroll">'+game.hand.map(c=>cardView(c)).join('')+'</div><p class="mobile-hint">Vuốt ngang để xem hết bài. Nhấn một lá bài để thêm hoặc bỏ khỏi chuỗi.</p></section></section>'+
     '<aside class="sidebar">'+statsBlock()+'<div class="sidebar-footer"><button class="ghost-btn" data-action="log">Xem toàn bộ nhật ký</button><button class="ghost-btn" data-action="restart">Chơi lại</button></div></aside></div>'+
-    '<footer class="footer">THẺ GIỚI: HỖN MANG · BẢN THỬ NGHIỆM V0.1 · TIẾN TRÌNH TRONG TRẬN CHƯA ĐƯỢC LƯU</footer>'+
+    '<footer class="footer">THẺ GIỚI: HỖN MANG · V0.2 · TỰ ĐỘNG LƯU TRÊN TRÌNH DUYỆT</footer>'+
     '</div>'+overlay();
+  persist();
   const scroll=app.querySelector(".hand-scroll");if(scroll)scroll.scrollLeft=oldScroll;
 }
 function choiceCard(id){
@@ -72,11 +126,11 @@ function choiceCard(id){
   return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
 }
 function overlay(){
- if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Để ý ý định của địch:</b> Khiên chặn sát thương trong một lượt, Băng Giá giảm sát thương kẻ địch. Vượt qua 3 ải để hoàn thành bản thử nghiệm.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
- if(showCollection)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal collection"><button class="modal-close" data-action="close">×</button><span class="eyebrow">20 KỸ NĂNG</span><h2>Thư viện thẻ V0.1</h2><p class="muted">12 thẻ nền tảng và các kỹ năng xuất hiện ngẫu nhiên hoặc qua phần thưởng. Mỗi lần chơi, bộ bài khởi đầu có thêm 2 thẻ ngẫu nhiên.</p><div class="library-grid">'+CARD_POOL.map(id=>{const d=CARDS[id];return '<div class="library-item skill-'+d.icon+'">'+icon(d.icon)+'<div><b>'+d.name+'</b><small>'+d.school+' · '+d.cost+' năng lượng</small><p>'+d.desc+'</p></div></div>';}).join('')+'</div></section></div>';
+ if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Để ý ý định của địch:</b> Khiên chặn sát thương trong một lượt, Băng Giá giảm sát thương kẻ địch. Đi qua bản đồ 6 tầng để gặp Boss. Cửa hàng dùng vàng từ chiến đấu, điểm nghỉ giúp hồi phục. Tiến trình tự lưu.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
+ if(showCollection)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal collection"><button class="modal-close" data-action="close">×</button><span class="eyebrow">20 KỸ NĂNG</span><h2>Thư viện thẻ V0.2</h2><p class="muted">12 thẻ nền tảng và các kỹ năng xuất hiện ngẫu nhiên hoặc qua phần thưởng. Mỗi lần chơi, bộ bài khởi đầu có thêm 2 thẻ ngẫu nhiên.</p><div class="library-grid">'+CARD_POOL.map(id=>{const d=CARDS[id];return '<div class="library-item skill-'+d.icon+'">'+icon(d.icon)+'<div><b>'+d.name+'</b><small>'+d.school+' · '+d.cost+' năng lượng</small><p>'+d.desc+'</p></div></div>';}).join('')+'</div></section></div>';
  if(showLog)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">CHIẾN BÁO</span><h2>Nhật ký chiến đấu</h2><div class="full-log">'+game.log.map(s=>'<p>'+s+'</p>').join('')+'</div></section></div>';
- if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi 13 Máu khi tiến vào ải '+(game.stage+1)+'. Bạn chỉ được chọn một thẻ để thêm vào bộ bài.</p><div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
- if(game.phase==="won"||game.phase==="lost")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal finish">'+icon(game.phase==="won"?"star":"shield","end-icon")+'<span class="eyebrow">'+(game.phase==="won"?"HÀNH TRÌNH HOÀN THÀNH":"HÀNH TRÌNH KẾT THÚC")+'</span><h2>'+(game.phase==="won"?"Tinh giới đã được giải phóng":"Hẹn gặp lại tại Tinh Giới")+'</h2><p>'+(game.phase==="won"?"Bạn đã chinh phục 3 ải thử nghiệm V0.1.":"Bạn đã đi tới ải "+game.stage+". Hãy thử một bộ bài và chuỗi kỹ năng mới.")+'</p><div class="finish-stats"><span>ẢI <b>'+game.stage+' / 3</b></span><span>LƯỢT <b>'+game.stats.turns+'</b></span><span>SÁT THƯƠNG <b>'+game.stats.damage+'</b></span><span>THẺ ĐÃ DÙNG <b>'+game.stats.played+'</b></span></div><button class="play-button" data-action="restart">BẮT ĐẦU LƯỢT MỚI →</button></section></div>';
+ if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi một ít Máu và trở về bản đồ sau khi chọn một thẻ thưởng.</p><div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
+ if(game.phase==="won"||game.phase==="lost")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal finish">'+icon(game.phase==="won"?"star":"shield","end-icon")+'<span class="eyebrow">'+(game.phase==="won"?"HÀNH TRÌNH HOÀN THÀNH":"HÀNH TRÌNH KẾT THÚC")+'</span><h2>'+(game.phase==="won"?"Tinh giới đã được giải phóng":"Hẹn gặp lại tại Tinh Giới")+'</h2><p>'+(game.phase==="won"?"Bạn đã vượt 6 tầng và đánh bại Thủ Vệ Tinh Giới.":"Bạn đã đi tới ải "+game.stage+". Hãy thử một bộ bài và chuỗi kỹ năng mới.")+'</p><div class="finish-stats"><span>ẢI <b>'+game.stage+' / 6</b></span><span>LƯỢT <b>'+game.stats.turns+'</b></span><span>SÁT THƯƠNG <b>'+game.stats.damage+'</b></span><span>THẺ ĐÃ DÙNG <b>'+game.stats.played+'</b></span></div><button class="play-button" data-action="restart">BẮT ĐẦU LƯỢT MỚI →</button></section></div>';
  return '';
 }
 function fx(card){
@@ -110,9 +164,15 @@ app.addEventListener("click",event=>{
   if(uid!==null){const id=Number(uid);if(game.selected.includes(id))unqueueCard(game,id);else queueCard(game,id);render();return;}
   const unqueue=b.getAttribute("data-unqueue");if(unqueue!==null){unqueueCard(game,Number(unqueue));render();return;}
   const reward=b.getAttribute("data-reward");if(reward){if(chooseReward(game,reward))render();return;}
+  const node=b.getAttribute("data-node");if(node!==null){if(chooseNode(game,node))render();return;}
+  const buy=b.getAttribute("data-buy");if(buy!==null){if(buyCard(game,buy))render();return;}
+  const rest=b.getAttribute("data-rest");if(rest!==null){if(takeRest(game,rest))render();return;}
+  const eventChoice=b.getAttribute("data-event");if(eventChoice!==null){if(chooseEvent(game,eventChoice))render();return;}
   switch(b.dataset.action){
     case "play":run();break;
-    case "restart":if(busy)return;game=createGame();showHelp=false;showCollection=false;showLog=false;render();break;
+    case "restart":restart();break;
+    case "potion":if(buyPotion(game))render();break;
+    case "leave-shop":if(leaveShop(game))render();break;
     case "help":showHelp=true;render();break;
     case "collection":showCollection=true;render();break;
     case "log":showLog=true;render();break;
