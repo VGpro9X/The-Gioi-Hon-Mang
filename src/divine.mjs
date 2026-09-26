@@ -1,7 +1,7 @@
 // V0.5. Special cards can ONLY be acquired from elite Ascension; evolutions
 // replace one existing card in the deck, preserving its unique ID and forge rank.
 export const GOD_CARDS={
-  god_thunder:{name:"Cửu Thiên Lôi Kiếp",cost:3,school:"Lôi",kind:"magic",rarity:"divine",icon:"bolt",desc:"Gây 24 sát thương +4 mỗi Lôi Ấn. Đặt 3 Lôi Ấn. Hai cuối lượt kế tiếp giáng thêm 7 sát thương."},
+  god_thunder:{name:"Cửu Thiên Lôi Kiếp",cost:3,school:"Lôi",kind:"magic",rarity:"divine",icon:"bolt",desc:"Gây 24 sát thương +4 mỗi Lôi Ấn. Đặt 3 Lôi Ấn. Cuối hai lượt kể từ khi thi triển, giáng thêm 7 sát thương."},
   god_flame:{name:"Thiên Hỏa Phượng Hoàng",cost:3,school:"Hỏa",kind:"magic",rarity:"divine",icon:"flame",desc:"Gây 24 sát thương, đặt 5 Thiêu Đốt và hồi 9 Máu."},
   god_frost:{name:"Vĩnh Hằng Băng Ngục",cost:2,school:"Băng",kind:"magic",rarity:"divine",icon:"snow",desc:"Gây 15 sát thương, đặt 5 Băng Giá và nhận 15 Khiên."},
   god_blood:{name:"Huyết Thần Giáng Thế",cost:2,school:"Huyết",kind:"attack",rarity:"divine",icon:"blood",desc:"Hiến 6 Máu nếu có thể, gây 23 sát thương +4 mỗi Xuất Huyết; thêm 3 Xuất Huyết và hồi 10 Máu."},
