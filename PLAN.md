@@ -24,7 +24,7 @@
 | Mốc | Nội dung | Trạng thái |
 |---|---|---|
 | V0.1 | Prototype 20 thẻ, chiến đấu chọn chuỗi, layout PC/mobile | Đã hoàn thành; người dùng đồng ý tiếp tục |
-| V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã viết mã; chờ kiểm thử Pages và người dùng đánh giá |
+| V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã deploy GitHub Pages; 15/15 kiểm thử qua; chờ người dùng chơi thử và xác nhận |
 | V0.3 | Mở rộng ~50 thẻ, nhiều nguyên tố và combo; kỹ năng bị động, phản ứng | Chưa bắt đầu |
 | V0.4 | Hoạt ảnh và hiệu ứng đặc trưng, nâng cấp thẻ, di vật, quái tinh anh và boss | Chưa bắt đầu |
 | V0.5 | Thần Kỹ, Thần Bí Kỹ, tiến hóa và biến thể kỹ năng hiếm | Chưa bắt đầu |
