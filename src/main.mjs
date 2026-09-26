@@ -117,6 +117,24 @@ function journeyScreen(){
        return '<button class="forge-card skill-'+d.icon+'" data-upgrade="'+c.uid+'">'+icon(d.icon)+
         '<strong>'+d.name+'</strong><span>'+d.school+' · '+d.cost+' năng lượng</span><small>'+d.desc+'</small><b>RÈN +1</b></button>';
      }).join("")+'</div><button class="ghost-btn journey-continue" data-action="cancel-upgrade">← QUAY LẠI</button>';
+ }else if(game.phase==="ascend"){
+   const mystical=game.divineOffers.some(id=>MYSTERY_IDS.includes(id));
+   body='<div class="ascend-intro"><span class="ascend-sigil">✦</span><span class="eyebrow">THẦN ĐÀN · THỨC TỈNH</span>'+
+     '<h2>Chọn một con đường sức mạnh</h2><p>Chiến thắng Tinh Anh cho phép bạn nhận một Thần Kỹ, có cơ hội gặp Thần Bí Kỹ, hoặc tiến hóa trực tiếp một lá đã sở hữu. Mỗi Thần Đàn chỉ chọn một phương án.</p>'+
+     '<div class="ascend-chance">'+(mystical?'✧ Thần Bí Kỹ xuất hiện trong lượt này!':'✦ Thần Kỹ xuất hiện tại Thần Đàn')+'</div></div>'+
+     '<div class="ascend-head"><span class="eyebrow">THẦN KỸ / THẦN BÍ KỸ</span><h3>Chọn một trong ba</h3></div>'+
+     '<div class="ascend-options">'+game.divineOffers.map(id=>{const d=CARDS[id];
+       return '<button class="ascend-card rarity-'+d.rarity+' skill-'+d.icon+'" data-divine="'+id+'">'+
+         '<span class="ascend-rarity">'+rarityLabel(d)+'</span><span class="ascend-icon">'+icon(d.icon)+'</span>'+
+         '<strong>'+d.name+'</strong><small>'+d.school+' · '+d.cost+' năng lượng</small><p>'+d.desc+'</p><b>THỨC TỈNH THẺ NÀY →</b></button>';
+     }).join('')+'</div>'+
+     '<div class="ascend-head"><span class="eyebrow">TIẾN HÓA THẺ HIỆN CÓ</span><h3>Hoặc biến đổi một lá trong bộ bài</h3></div>'+
+     '<div class="evolution-options">'+evolutionCandidates(game).map(c=>{const d=CARDS[c.id],next=EVOLUTIONS[c.id];
+       return '<button class="evolution-option" data-evolve="'+c.uid+'">'+icon(d.icon)+
+         '<span><strong>'+d.name+' → '+next.name+'</strong><small>'+next.desc+
+         (c.level===1?' · Giữ nguyên cấp rèn +1':'')+'</small></span><b>TIẾN HÓA</b></button>';
+     }).join('')+(evolutionCandidates(game).length?'':'<p class="journey-hint">Hiện chưa có lá phù hợp để tiến hóa.</p>')+'</div>'+
+     '<button class="ghost-btn journey-continue" data-action="skip-ascend">BỎ QUA THẦN ĐÀN →</button>';
  }else{
    const event=EVENTS[game.eventId];
    body='<div class="journey-event"><div class="event-sigil">◈</div><h2>'+event.title+'</h2><p>'+event.desc+'</p></div>'+
@@ -171,7 +189,7 @@ function choiceCard(id){
   return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+' · '+rarityLabel(d)+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
 }
 function overlay(){
- if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Có thể rèn thẻ +1 ở Điểm Nghỉ hoặc cửa hàng, thu thập 6 Di Vật và chống Xuyên Giáp của Tinh Anh hoặc Boss cuồng nộ. Bản lưu V0.2–V0.3 vẫn tiếp tục được.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
+ if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Có thể rèn thẻ +1 ở Điểm Nghỉ hoặc cửa hàng, thu thập 6 Di Vật và chống Xuyên Giáp của Tinh Anh hoặc Boss cuồng nộ. Sau khi thắng Tinh Anh, Thần Đàn cho phép nhận Thần Kỹ/Thần Bí Kỹ hoặc tiến hóa một thẻ hiện có. Tỉ lệ xuất hiện Thần Bí Kỹ tăng từ 15% ở tầng 3 lên 35% ở tầng 5. Bản lưu V0.2–V0.4 vẫn được hỗ trợ.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
  if(showCollection){
    const filtered=CARD_POOL.filter(id=>collectionFilter==="all"||
      CARDS[id].kind===collectionFilter||CARDS[id].school===collectionFilter||CARDS[id].rarity===collectionFilter);
@@ -187,7 +205,7 @@ function overlay(){
       ' năng lượng</small><p>'+d.desc+'</p></div></div>';}).join('')+'</div></section></div>';
  }
  if(showLog)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">CHIẾN BÁO</span><h2>Nhật ký chiến đấu</h2><div class="full-log">'+game.log.map(s=>'<p>'+s+'</p>').join('')+'</div></section></div>';
- if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi một ít Máu và trở về bản đồ sau khi chọn một thẻ thưởng.</p>'+(game.lastRelic&&RELICS[game.lastRelic]?'<div class="relic-win">✦ DI VẬT TINH ANH: '+RELICS[game.lastRelic].name+' · '+RELICS[game.lastRelic].desc+'</div>':'')+'<div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
+ if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi một ít Máu sau khi chọn một thẻ thưởng.'+(game.ascensionPending?' Thần Đàn thức tỉnh sẽ mở ngay sau bước này.':' Trở về bản đồ để chọn nhánh tiếp theo.')+'</p>'+(game.lastRelic&&RELICS[game.lastRelic]?'<div class="relic-win">✦ DI VẬT TINH ANH: '+RELICS[game.lastRelic].name+' · '+RELICS[game.lastRelic].desc+'</div>':'')+'<div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
  if(game.phase==="won"||game.phase==="lost")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal finish">'+icon(game.phase==="won"?"star":"shield","end-icon")+'<span class="eyebrow">'+(game.phase==="won"?"HÀNH TRÌNH HOÀN THÀNH":"HÀNH TRÌNH KẾT THÚC")+'</span><h2>'+(game.phase==="won"?"Tinh giới đã được giải phóng":"Hẹn gặp lại tại Tinh Giới")+'</h2><p>'+(game.phase==="won"?"Bạn đã vượt 6 tầng và đánh bại Thủ Vệ Tinh Giới.":"Bạn đã đi tới ải "+game.stage+". Hãy thử một bộ bài và chuỗi kỹ năng mới.")+'</p><div class="finish-stats"><span>ẢI <b>'+game.stage+' / 6</b></span><span>LƯỢT <b>'+game.stats.turns+'</b></span><span>SÁT THƯƠNG <b>'+game.stats.damage+'</b></span><span>THẺ ĐÃ DÙNG <b>'+game.stats.played+'</b></span></div><button class="play-button" data-action="restart">BẮT ĐẦU LƯỢT MỚI →</button></section></div>';
  return '';
 }
@@ -238,6 +256,8 @@ app.addEventListener("click",event=>{
   if(uid!==null){const id=Number(uid);if(game.selected.includes(id))unqueueCard(game,id);else queueCard(game,id);render();return;}
   const unqueue=b.getAttribute("data-unqueue");if(unqueue!==null){unqueueCard(game,Number(unqueue));render();return;}
   const filter=b.getAttribute("data-filter");if(filter!==null){if(CARD_FILTERS.some(f=>f.value===filter)){collectionFilter=filter;render();}return;}
+  const divine=b.getAttribute("data-divine");if(divine!==null){if(chooseDivine(game,divine))render();return;}
+  const evolve=b.getAttribute("data-evolve");if(evolve!==null){if(evolveAtAscension(game,Number(evolve)))render();return;}
   const relic=b.getAttribute("data-buy-relic");if(relic!==null){if(buyRelic(game,relic))render();return;}
   const upgrade=b.getAttribute("data-upgrade");if(upgrade!==null){if(upgradeCard(game,Number(upgrade)))render();return;}
   const reward=b.getAttribute("data-reward");if(reward){if(chooseReward(game,reward))render();return;}
@@ -249,6 +269,7 @@ app.addEventListener("click",event=>{
     case "play":run();break;
     case "restart":restart();break;
     case "potion":if(buyPotion(game))render();break;
+    case "skip-ascend":if(skipAscension(game))render();break;
     case "shop-upgrade":if(startShopUpgrade(game))render();break;
     case "cancel-upgrade":if(cancelUpgrade(game))render();break;
     case "leave-shop":if(leaveShop(game))render();break;
