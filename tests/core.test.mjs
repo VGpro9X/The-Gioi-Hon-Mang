@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import {CARDS,CARD_POOL,createGame,queueCard,unqueueCard,queuedCost,playCard,finishTurn,chooseReward,chooseNode,availableNodes} from "../src/core.mjs";
 const card=(id,uid=9999)=>({id,uid});
 const battle=()=>{const g=createGame();assert.ok(chooseNode(g,availableNodes(g)[0].id));return g;};
-test("20 thẻ gốc đều có dữ liệu",()=>{
- assert.equal(CARD_POOL.length,20);
+test("50 thẻ có metadata đầy đủ",()=>{
+ assert.equal(CARD_POOL.length,50);
  for(const id of CARD_POOL){assert.ok(CARDS[id].name);assert.ok(CARDS[id].desc);assert.ok(Number.isInteger(CARDS[id].cost));}
 });
 test("hành trình khởi đầu có 14 lá, bắt đầu chiến đấu rút 5 lá và có 3 năng lượng",()=>{
