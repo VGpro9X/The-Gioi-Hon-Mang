@@ -17,7 +17,7 @@ test("UI smoke: 70-card library filters, map route, autosave and battle render",
  assert.match(app.innerHTML,/70 KỸ NĂNG/);
  assert.match(app.innerHTML,/data-filter="passive"/);
  click({"data-filter":"passive"});
- assert.match(app.innerHTML,/Đang hiển thị 5 \/ 70 thẻ/);
+ assert.match(app.innerHTML,/Đang hiển thị 6 \/ 70 thẻ/);
  click({"data-filter":"reaction"});
  assert.match(app.innerHTML,/Đang hiển thị 5 \/ 70 thẻ/);
  click({"data-action":"close"});
