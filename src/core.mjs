@@ -233,35 +233,50 @@ function wonFight(g){
 }
 
 function applyDamage(g,n){
-  const absorb=Math.min(g.block,n);
-  g.block-=absorb; const real=Math.max(0,n-absorb);
-  g.hp=Math.max(0,g.hp-real);
-  msg(g,"Kẻ địch đánh "+n+" sát thương"+(absorb?" • Khiên đỡ "+absorb:"")+".");
-  g.lastEvent={kind:"enemy",amount:real};
+ const absorb=Math.min(g.block,n);
+ g.block-=absorb;const real=Math.max(0,n-absorb);
+ g.hp=Math.max(0,g.hp-real);
+ msg(g,"Kẻ địch đánh "+n+" sát thương"+(absorb?" • Khiên đỡ "+absorb:"")+".");
+ g.lastEvent={kind:"enemy",amount:real};
+}
+function reactToAttack(g,value){
+ const r=g.reactions;
+ let damage=value,reflected=0;
+ // Each armed reaction fires once in a fixed order on an actual attack.
+ if(r.mirrorward>0){r.mirrorward--;damage=Math.floor(damage/2);reflected+=7;msg(g,"Kính Hộ Mệnh: giảm nửa sát thương, phản 7.");}
+ if(r.frostward>0){r.frostward--;damage=Math.max(0,damage-5);addStatus(g,"frost",2);msg(g,"Băng Phản: giảm 5 sát thương, đặt 2 Băng Giá.");}
+ if(r.thornmail>0){r.thornmail--;reflected+=12;msg(g,"Giáp Gai: phản 12 sát thương.");}
+ if(r.counterstrike>0){r.counterstrike--;reflected+=16;addStatus(g,"mark",1);msg(g,"Phản Thiên Kiếm: phản 16 sát thương, đặt 1 Lôi Ấn.");}
+ applyDamage(g,damage);
+ if(r.bloodpact>0){r.bloodpact--;
+   if(g.hp>0){heal(g,7);g.power++;msg(g,"Huyết Khế: +1 Kiếm Ý.");}
+ }
+ if(reflected>0)attack(g,reflected,"Phản Ứng");
 }
 export function finishTurn(g){
-  if(g.phase==="reward"||g.phase==="won"||g.phase==="lost")return g.phase;
-  if(g.phase!=="animating"&&g.phase!=="planning")return g.phase;
-  g.selected=[];g.stats.turns++;
-  const e=g.enemy;
-  if(e.burn){attack(g,e.burn*3,"Thiêu Đốt");e.burn=Math.max(0,e.burn-1);}
-  if(e.hp>0 && e.bleed){attack(g,e.bleed*2,"Xuất Huyết");e.bleed=Math.max(0,e.bleed-1);}
-  if(e.hp<=0){wonFight(g);return g.phase;}
-  const action=getIntent(g);
-  if(action.kind==="shield"){e.shield+=action.value;msg(g,e.name+" nhận "+action.value+" Khiên.");}
-  else {
-    const reduction=e.frost>0?Math.min(action.value,e.frost*2):0;
-    if(reduction)msg(g,"Băng Giá giảm "+reduction+" sát thương địch.");
-    applyDamage(g,action.value-reduction);
-  }
-  e.frost=Math.max(0,e.frost-1);
-  e.mark=Math.max(0,e.mark-1);
-  if(g.hp<=0){g.phase="lost";msg(g,"Hành trình kết thúc ở ải "+g.stage+".");return g.phase;}
-  g.block=0;
-  g.turn++;g.energy=g.maxEnergy;
-  g.discard.push(...g.hand.splice(0));draw(g,5);
-  g.phase="planning";
-  return g.phase;
+ if(!["animating","planning"].includes(g.phase))return g.phase;
+ g.selected=[];g.stats.turns++;
+ const e=g.enemy;
+ if(e.burn){attack(g,e.burn*3,"Thiêu Đốt");e.burn=Math.max(0,e.burn-1);}
+ if(e.hp>0&&e.bleed){attack(g,e.bleed*2,"Xuất Huyết");e.bleed=Math.max(0,e.bleed-1);}
+ if(e.hp>0&&e.poison){attack(g,e.poison*3,"Độc Tố");e.poison=Math.max(0,e.poison-1);}
+ if(e.hp>0&&g.summons.wisp)attack(g,g.summons.wisp*3,"Linh Hồn tấn công");
+ if(e.hp<=0){wonFight(g);return g.phase;}
+ const intent=getIntent(g);
+ if(intent.kind==="shield"){e.shield+=intent.value;msg(g,e.name+" nhận "+intent.value+" Khiên.");}
+ else{
+   const guards=g.summons.golem*4+(g.passives.spiritwell||0)*summonCount(g)*2;
+   if(guards>0)block(g,guards);
+   const chill=e.frost>0?Math.min(intent.value,e.frost*2):0;
+   if(chill)msg(g,"Băng Giá giảm "+chill+" sát thương địch.");
+   reactToAttack(g,intent.value-chill);
+ }
+ e.frost=Math.max(0,e.frost-1);e.mark=Math.max(0,e.mark-1);
+ if(g.hp<=0){g.phase="lost";msg(g,"Hành trình kết thúc ở ải "+g.stage+".");return g.phase;}
+ if(e.hp<=0){wonFight(g);return g.phase;}
+ g.block=0;g.turn++;g.energy=g.maxEnergy;
+ g.discard.push(...g.hand.splice(0));draw(g,5);
+ g.phase="planning";return g.phase;
 }
 export function chooseReward(g,id){
  if(g.phase!=="reward"||!g.reward.includes(id))return false;
@@ -348,7 +363,7 @@ export const serializeGame=g=>JSON.stringify(g);
 export function restoreGame(raw){
  try{
   const g=typeof raw==="string"?JSON.parse(raw):raw;
-  if(!g||g.version!=="0.2.0"||!["map","planning","reward","shop","rest","event","won","lost"].includes(g.phase))return null;
+  if(!g||!["0.2.0","0.3.0"].includes(g.version)||!["map","planning","reward","shop","rest","event","won","lost"].includes(g.phase))return null;
   if(!mapIsValid(g.map)||!Array.isArray(g.route)||g.route.length>6||
    !g.route.every((id,i)=>typeof id==="string"&&g.map.some(n=>n.id===id&&n.row===i)))return null;
   if(!Number.isInteger(g.stage)||g.stage!==g.route.length||g.stage<0||g.stage>6)return null;
@@ -369,6 +384,12 @@ export function restoreGame(raw){
   if(g.phase==="event"&&!EVENTS[g.eventId])return null;
   if(g.stage>0&&(!g.currentNode||!g.map.some(n=>n.id===g.currentNode.id)))return null;
   if(["planning","reward","lost","won"].includes(g.phase)&&(!g.enemy||!Number.isFinite(g.enemy.hp)||g.enemy.hp<0))return null;
+  // Valid V0.2 saves migrate in-place; do not erase user progress.
+  g.enemy.poison=Number.isFinite(g.enemy.poison)?g.enemy.poison:0;
+  g.summons=g.summons||{wisp:0,golem:0};
+  g.passives=g.passives||{};g.reactions=g.reactions||{};
+  g.lastOffensive=g.lastOffensive||null;g.lastSwordTurn=g.lastSwordTurn||0;
+  g.version="0.3.0";
   nextUid=Math.max(nextUid,...all.map(c=>c.uid+1));return g;
  }catch{return null;}
 }
