@@ -79,8 +79,11 @@ test("The elite altar grants exactly one Divine and returns to the map; rejects 
   assert.equal(chooseDivine(g,id),false);assert.equal(skipAscension(g),false);
 });
 test("Evolution transforms one owned card, preserving UID and forge level, once only",()=>{
-  const g=altar(),target=evolutionCandidates(g).find(c=>c.id==="spark");
-  assert.ok(target);target.level=1;const uidBefore=target.uid;
+  const g=altar();
+  // The combat test helper discards the previously drawn hand; install a known
+  // physical card to isolate evolution semantics from random starting draws.
+  const target={id:"spark",uid:uid++,level:1};g.discard.push(target);
+  assert.ok(evolutionCandidates(g).some(c=>c.uid===target.uid));const uidBefore=target.uid;
   assert.ok(evolveAtAscension(g,uidBefore));assert.equal(target.id,"evo_spark");
   assert.equal(target.uid,uidBefore);assert.equal(target.level,1);
   assert.equal(g.phase,"map");assert.equal(g.ascensionsTaken,1);
