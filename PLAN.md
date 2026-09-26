@@ -24,8 +24,8 @@
 | Mốc | Nội dung | Trạng thái |
 |---|---|---|
 | V0.1 | Prototype 20 thẻ, chiến đấu chọn chuỗi, layout PC/mobile | Đã hoàn thành; người dùng đồng ý tiếp tục |
-| V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã deploy GitHub Pages; 15/15 kiểm thử qua; chờ người dùng chơi thử và xác nhận |
-| V0.3 | Mở rộng ~50 thẻ, nhiều nguyên tố và combo; kỹ năng bị động, phản ứng | Chưa bắt đầu |
+| V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã hoàn thành và được yêu cầu tiếp tục V0.3 |
+| V0.3 | Mở rộng 50 thẻ, Độc/Thời Không/Triệu Hồi, combo, Thiên Phú và Phản Ứng | Đã hoàn thiện mã và kiểm thử; chờ người dùng test trên GitHub Pages |
 | V0.4 | Hoạt ảnh và hiệu ứng đặc trưng, nâng cấp thẻ, di vật, quái tinh anh và boss | Chưa bắt đầu |
 | V0.5 | Thần Kỹ, Thần Bí Kỹ, tiến hóa và biến thể kỹ năng hiếm | Chưa bắt đầu |
 | V0.6 | Hành Trình đầy đủ với nhiều khu vực, cân bằng, thành tích và mở khóa | Chưa bắt đầu |
@@ -52,7 +52,7 @@
 - [x] Người dùng cho phép bắt đầu V0.2.
 
 
-## V0.2 — CHECKPOINT HIỆN TẠI
+## V0.2 — CHECKPOINT ĐÃ HOÀN THÀNH
 
 - Bản đồ 6 tầng, 16 điểm và đường đi theo cột liền kề; các điểm sự kiện, nghỉ, cửa hàng được xáo trộn mỗi lần chơi.
 - Thắng trận nhận vàng, chọn một thẻ và hồi một ít máu. Trận Tinh Anh và Boss có chỉ số khác trận thường.
@@ -61,4 +61,19 @@
 - Tự động lưu và khôi phục lượt chơi bằng localStorage trên trình duyệt hiện tại.
 - Chạy toàn bộ kiểm thử Node.js trước khi tự triển khai GitHub Pages.
 
-**DỪNG sau V0.2:** Sau khi build/deploy thành công, gửi link và chờ người dùng test và xác nhận rồi mới làm V0.3.
+**V0.2:** Đã triển khai và được người dùng yêu cầu chuyển sang V0.3.
+
+
+## V0.3 — CHECKPOINT HIỆN TẠI
+
+- Mở rộng đúng 30 thẻ (tổng 50): năm thẻ Độc, năm Thời Không, năm Triệu Hồi, năm nguyên tố kết hợp, năm Thiên Phú và năm Phản Ứng.
+- Cơ chế Độc: sát thương cuối lượt theo tầng, mỗi lượt giảm một tầng. Triệu hồi Linh Hồn tấn công, Thạch Vệ phòng thủ, giới hạn số lượng để tránh tràn hiệu ứng.
+- Thiên Phú tồn tại trong một trận, tối đa hai tầng; reset khi đi vào trận mới. Phản Ứng tồn tại cho tới lúc địch tấn công, được dùng một lần và có giới hạn hai lượt dự trữ.
+- Trình tự phản ứng cố định và hữu hạn; khả năng sao chép/khôi phục thẻ có giới hạn, tránh tái kích hoạt đệ quy.
+- Combo kết hợp trạng thái nhiều nguyên tố, đặc biệt Hỗn Mang Trảm và Vọng Thời.
+- Thư viện 50 thẻ có bộ lọc theo trường phái/loại, bảng trạng thái trận đấu cập nhật thêm triệu hồi, Thiên Phú và Phản Ứng.
+- Thưởng chiến thắng có ít nhất một lựa chọn thuộc Thiên Phú hoặc Phản Ứng; cửa hàng luôn có ít nhất một kỹ năng mới.
+- Tự động chuyển bản lưu hợp lệ V0.2 sang V0.3; sử dụng khoá lưu mới nên Chơi mới không khôi phục nhầm bản cũ.
+- Kiểm thử hồi quy V0.1–V0.2 và các cơ chế V0.3 qua GitHub Actions trước khi phát hành.
+
+**CHECKPOINT BẮT BUỘC:** Khi GitHub Pages triển khai thành công, dừng phát triển và gửi URL công khai. Chỉ bắt đầu V0.4 sau khi người dùng chơi thử và xác nhận. Phản hồi sửa lỗi vẫn thuộc V0.3.
