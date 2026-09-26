@@ -25,8 +25,8 @@
 |---|---|---|
 | V0.1 | Prototype 20 thẻ, chiến đấu chọn chuỗi, layout PC/mobile | Đã hoàn thành; người dùng đồng ý tiếp tục |
 | V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã hoàn thành và được yêu cầu tiếp tục V0.3 |
-| V0.3 | Mở rộng 50 thẻ, Độc/Thời Không/Triệu Hồi, combo, Thiên Phú và Phản Ứng | Đã hoàn thiện mã và kiểm thử; chờ người dùng test trên GitHub Pages |
-| V0.4 | Hoạt ảnh và hiệu ứng đặc trưng, nâng cấp thẻ, di vật, quái tinh anh và boss | Chưa bắt đầu |
+| V0.3 | Mở rộng 50 thẻ, Độc/Thời Không/Triệu Hồi, combo, Thiên Phú và Phản Ứng | Đã phát hành và được người dùng chấp thuận tiếp tục V0.4 |
+| V0.4 | 50 hiệu ứng riêng, rèn thẻ +1, 6 Di Vật, Tinh Anh Xuyên Giáp và Boss chuyển pha | Mã đã hoàn thiện, kiểm thử và chuẩn bị phát hành; chờ người dùng test |
 | V0.5 | Thần Kỹ, Thần Bí Kỹ, tiến hóa và biến thể kỹ năng hiếm | Chưa bắt đầu |
 | V0.6 | Hành Trình đầy đủ với nhiều khu vực, cân bằng, thành tích và mở khóa | Chưa bắt đầu |
 | V0.7 | Chế độ Sinh Tồn vô hạn, tăng độ khó và thành tích cá nhân | Chưa bắt đầu |
@@ -64,7 +64,7 @@
 **V0.2:** Đã triển khai và được người dùng yêu cầu chuyển sang V0.3.
 
 
-## V0.3 — CHECKPOINT HIỆN TẠI
+## V0.3 — CHECKPOINT ĐÃ HOÀN THÀNH
 
 - Mở rộng đúng 30 thẻ (tổng 50): năm thẻ Độc, năm Thời Không, năm Triệu Hồi, năm nguyên tố kết hợp, năm Thiên Phú và năm Phản Ứng.
 - Cơ chế Độc: sát thương cuối lượt theo tầng, mỗi lượt giảm một tầng. Triệu hồi Linh Hồn tấn công, Thạch Vệ phòng thủ, giới hạn số lượng để tránh tràn hiệu ứng.
@@ -76,4 +76,17 @@
 - Tự động chuyển bản lưu hợp lệ V0.2 sang V0.3; sử dụng khoá lưu mới nên Chơi mới không khôi phục nhầm bản cũ.
 - Kiểm thử hồi quy V0.1–V0.2 và các cơ chế V0.3 qua GitHub Actions trước khi phát hành.
 
-**CHECKPOINT BẮT BUỘC:** Khi GitHub Pages triển khai thành công, dừng phát triển và gửi URL công khai. Chỉ bắt đầu V0.4 sau khi người dùng chơi thử và xác nhận. Phản hồi sửa lỗi vẫn thuộc V0.3.
+**V0.3:** Đã phát hành và được người dùng duyệt để chuyển sang V0.4.
+
+
+## V0.4 — CHECKPOINT HIỆN TẠI
+
+- Đồ họa tự tạo bằng CSS và DOM có 50 preset định danh độc lập, gồm vệt chém, lôi điện, cầu lửa, băng tinh, độc vụ, cổng thời gian, triệu hồi, hộ mệnh và hỗn mang. Chế độ giảm chuyển động dựa vào cài đặt hệ thống, giới hạn 3–12 hạt cho mỗi kỹ năng.
+- Rèn thẻ +1 tại điểm nghỉ (miễn phí, thay thế một lựa chọn nghỉ) hoặc lò rèn cửa hàng (45 vàng, tối đa một lần mỗi lượt ghé). Một lá nâng cấp tối đa một lần theo UID; thẻ gây sát thương thêm một đòn 5 sát thương, thẻ hỗ trợ thêm 5 Khiên.
+- Sáu Di Vật tồn tại qua các trận trong cùng hành trình: Lôi Ấn Cổ, Hỏa Chủng, Độc Tinh, Tinh Thuẫn, Chuông Triệu Linh và Huyết Ngọc. Thắng Tinh Anh nhận 1 món chưa sở hữu nếu còn, hoặc mua một món ngẫu nhiên tại cửa hàng.
+- Tinh Anh có ý định Xuyên Giáp bỏ qua 50% Khiên. Boss chuyển pha khi còn không quá 50% sinh mệnh: dùng Hấp Thụ Tinh Vân, Cuồng Nộ và Bùng Nổ bỏ qua 25% Khiên. Giao diện có cảnh báo chuyển pha.
+- Giao diện chiến đấu hiện hiệu ứng đặc trưng và số sát thương. Điểm nghỉ, cửa hàng có công cụ rèn và quản lý di vật. Thẻ +1 có hiển thị trực quan.
+- Tự lưu theo phiên bản V0.4, chuyển bản lưu V0.2 và V0.3 hợp lệ mà không mất bộ bài, vàng hoặc tiến trình; mặc định mới đảm bảo tương thích.
+- Kiểm thử hồi quy V0.1–V0.3 và mới cho rèn thẻ, di vật, ý định Tinh Anh/Boss, đồ họa theo thẻ và thao tác UI.
+
+**QUY TẮC DỪNG:** Khi V0.4 triển khai thành công lên GitHub Pages, báo URL và chờ người dùng chơi/test. Chỉ sửa lỗi V0.4 nếu có. Không làm V0.5 trước khi người dùng xác nhận.
