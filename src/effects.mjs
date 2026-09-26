@@ -26,7 +26,18 @@ export const CARD_FX={
  venomheart:fx("sigil","poison",5),swordmaster:fx("sigil","steel",5),
  spiritwell:fx("sigil","spirit",5),mirrorward:fx("reflect","aegis",6),
  thornmail:fx("thorns","aegis",7),frostward:fx("icewall","frost",7),
- bloodpact:fx("bloodrune","blood",7),counterstrike:fx("counter","steel",10)
+ bloodpact:fx("bloodrune","blood",7),counterstrike:fx("counter","steel",10),
+ god_thunder:fx("divine-thunder","lightning",12),god_flame:fx("divine-phoenix","fire",12),
+ god_frost:fx("divine-prism","frost",11),god_blood:fx("divine-blood","blood",11),
+ god_venom:fx("divine-serpent","poison",12),god_time:fx("divine-orbit","time",10),
+ god_summon:fx("divine-sigil","spirit",11),god_cosmos:fx("divine-cosmos","cosmic",12),
+ mystery_void:fx("secret-void","cosmic",12),mystery_immortal:fx("secret-immortal","blood",11),
+ mystery_paradox:fx("secret-paradox","time",12),mystery_eclipse:fx("secret-eclipse","cosmic",12),
+ mystery_genesis:fx("secret-genesis","cosmic",12),
+ evo_blade:fx("evolution-sword","steel",10),evo_spark:fx("evolution-lightning","lightning",10),
+ evo_ember:fx("evolution-flame","fire",10),evo_frost:fx("evolution-ice","frost",10),
+ evo_bleed:fx("evolution-blood","blood",10),evo_venom:fx("evolution-venom","poison",10),
+ evo_wisp:fx("evolution-spirit","spirit",10)
 };
 const SAFE_NAME=/^[\p{L}\p{N} \-+]+$/u;
 export function effectPreset(id){return CARD_FX[id]||fx("rune","arcane",4);}
