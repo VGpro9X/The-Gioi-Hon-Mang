@@ -27,7 +27,7 @@
 | V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã hoàn thành và được yêu cầu tiếp tục V0.3 |
 | V0.3 | Mở rộng 50 thẻ, Độc/Thời Không/Triệu Hồi, combo, Thiên Phú và Phản Ứng | Đã phát hành và được người dùng chấp thuận tiếp tục V0.4 |
 | V0.4 | 50 hiệu ứng riêng, rèn thẻ +1, 6 Di Vật, Tinh Anh Xuyên Giáp và Boss chuyển pha | Đã phát hành, người dùng chấp thuận tiếp tục V0.5 |
-| V0.5 | 8 Thần Kỹ, 5 Thần Bí Kỹ, 7 tiến hóa, Thần Đàn sau trận Tinh Anh và tỉ lệ tăng theo tầng | Đã phát triển và kiểm thử; chờ triển khai GitHub Pages và người dùng test |
+| V0.5 | 8 Thần Kỹ, 5 Thần Bí Kỹ, 7 tiến hóa, Thần Đàn sau trận Tinh Anh và tỉ lệ tăng theo tầng | Đã phát hành lên GitHub Pages; 47/47 bài kiểm thử đạt; dừng chờ người dùng chơi/test |
 | V0.6 | Hành Trình đầy đủ với nhiều khu vực, cân bằng, thành tích và mở khóa | Chưa bắt đầu |
 | V0.7 | Chế độ Sinh Tồn vô hạn, tăng độ khó và thành tích cá nhân | Chưa bắt đầu |
 
