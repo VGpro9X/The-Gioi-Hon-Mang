@@ -265,14 +265,15 @@ function wonFight(g){
  g.reward=shuffled([signature,...shuffled(CARD_POOL.filter(id=>!["blade","guard",signature].includes(id))).slice(0,2)]);
 }
 
-function applyDamage(g,n){
- const absorb=Math.min(g.block,n);
+function applyDamage(g,n,pierce=0){
+ const bypass=Math.floor(Math.max(0,n)*pierce);
+ const absorb=Math.min(g.block,Math.max(0,n-bypass));
  g.block-=absorb;const real=Math.max(0,n-absorb);
  g.hp=Math.max(0,g.hp-real);
- msg(g,"Kẻ địch đánh "+n+" sát thương"+(absorb?" • Khiên đỡ "+absorb:"")+".");
+ msg(g,"Kẻ địch đánh "+n+" sát thương"+(absorb?" • Khiên đỡ "+absorb:"")+(bypass?" • xuyên "+bypass:"")+".");
  g.lastEvent={kind:"enemy",amount:real};
 }
-function reactToAttack(g,value){
+function reactToAttack(g,value,pierce=0){
  const r=g.reactions;
  let damage=value,reflected=0;
  // Each armed reaction fires once in a fixed order on an actual attack.
@@ -280,7 +281,7 @@ function reactToAttack(g,value){
  if(r.frostward>0){r.frostward--;damage=Math.max(0,damage-5);addStatus(g,"frost",2);msg(g,"Băng Phản: giảm 5 sát thương, đặt 2 Băng Giá.");}
  if(r.thornmail>0){r.thornmail--;reflected+=12;msg(g,"Giáp Gai: phản 12 sát thương.");}
  if(r.counterstrike>0){r.counterstrike--;reflected+=16;addStatus(g,"mark",1);msg(g,"Phản Thiên Kiếm: phản 16 sát thương, đặt 1 Lôi Ấn.");}
- applyDamage(g,damage);
+ applyDamage(g,damage,pierce);
  if(r.bloodpact>0){r.bloodpact--;
    if(g.hp>0){heal(g,7);g.power++;msg(g,"Huyết Khế: +1 Kiếm Ý.");}
  }
@@ -293,16 +294,21 @@ export function finishTurn(g){
  if(e.burn){attack(g,e.burn*3,"Thiêu Đốt");e.burn=Math.max(0,e.burn-1);}
  if(e.hp>0&&e.bleed){attack(g,e.bleed*2,"Xuất Huyết");e.bleed=Math.max(0,e.bleed-1);}
  if(e.hp>0&&e.poison){attack(g,e.poison*3,"Độc Tố");e.poison=Math.max(0,e.poison-1);}
- if(e.hp>0&&g.summons.wisp)attack(g,g.summons.wisp*3,"Linh Hồn tấn công");
+ if(e.hp>0&&g.summons.wisp)attack(g,g.summons.wisp*(hasRelic(g,"spiritbell")?5:3),"Linh Hồn tấn công");
  if(e.hp<=0){wonFight(g);return g.phase;}
  const intent=getIntent(g);
- if(intent.kind==="shield"){e.shield+=intent.value;msg(g,e.name+" nhận "+intent.value+" Khiên.");}
+ if(intent.kind==="shield"||intent.kind==="fortify"){
+   e.shield+=intent.value;msg(g,e.name+" nhận "+intent.value+" Khiên.");
+   if(intent.kind==="fortify"){
+     e.hp=Math.min(e.maxHp,e.hp+6);msg(g,"Thủ Vệ hấp thụ tinh vân, hồi 6 Máu.");
+   }
+ }
  else{
    const guards=g.summons.golem*4+(g.passives.spiritwell||0)*summonCount(g)*2;
    if(guards>0)block(g,guards);
    const chill=e.frost>0?Math.min(intent.value,e.frost*2):0;
    if(chill)msg(g,"Băng Giá giảm "+chill+" sát thương địch.");
-   reactToAttack(g,intent.value-chill);
+   reactToAttack(g,intent.value-chill,intent.kind==="pierce"?.5:intent.kind==="nova"?.25:0);
  }
  e.frost=Math.max(0,e.frost-1);e.mark=Math.max(0,e.mark-1);
  if(g.hp<=0){g.phase="lost";msg(g,"Hành trình kết thúc ở ải "+g.stage+".");return g.phase;}
@@ -316,7 +322,7 @@ export function chooseReward(g,id){
  g.discard.push(makeCard(id));
  const recovery=g.currentNode?.kind==="elite"?9:6;
  g.hp=Math.min(g.maxHp,g.hp+recovery);
- g.reward=[];g.phase="map";
+ g.reward=[];g.lastRelic=null;g.phase="map";
  msg(g,"Nhận "+CARDS[id].name+", hồi "+recovery+" Máu. Chọn nhánh tiếp theo.");
  return true;
 }
