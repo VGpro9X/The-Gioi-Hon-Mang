@@ -1,4 +1,5 @@
-// Thẻ Giới: Hỗn Mang — V0.2. Combat and journey rules.
+// Thẻ Giới: Hỗn Mang — V0.3. Combat and journey rules.
+import {EXTRA_CARDS} from './expansion.mjs';
 import {MAP_ROWS,generateMap,availableNodes,mapIsValid} from "./journey.mjs";
 export {NODE_INFO,availableNodes} from "./journey.mjs";
 export const CARDS = {
@@ -21,7 +22,8 @@ export const CARDS = {
   glacier: {name:"Băng Phong",cost:2,school:"Băng",kind:"magic",rarity:"rare",desc:"Gây 8 sát thương, thêm 4 Băng Giá và nhận 8 Khiên.",icon:"snow"},
   phoenix: {name:"Phượng Huyết",cost:2,school:"Huyết",kind:"power",rarity:"rare",desc:"Hồi 12 Máu, nhận 10 Khiên và đặt 2 Xuất Huyết.",icon:"blood"},
   cosmos:  {name:"Tinh Vân Kiếm",cost:3,school:"Hỗn Mang",kind:"attack",rarity:"rare",desc:"Chém 3 lần, mỗi lần 10 sát thương. Mỗi Kiếm Ý tăng 2 sát thương.",icon:"star"},
-  riposte: {name:"Phản Chấn",cost:1,school:"Phòng Ngự",kind:"guard",rarity:"uncommon",desc:"Nhận 8 Khiên, gây sát thương bằng nửa số Khiên đang có.",icon:"shield"}
+  riposte: {name:"Phản Chấn",cost:1,school:"Phòng Ngự",kind:"guard",rarity:"uncommon",desc:"Nhận 8 Khiên, gây sát thương bằng nửa số Khiên đang có.",icon:"shield"},
+  ...EXTRA_CARDS
 };
 export const CARD_POOL = Object.keys(CARDS);
 const START_DECK = ["blade","blade","guard","guard","twin","spark","ember","frost","bleed","surge","leech","shatter"];
@@ -57,14 +59,15 @@ const enemyTemplate=(stage,kind="battle")=>{
  const base=kind==="boss"?ENEMIES[2]:kind==="elite"?ENEMIES[1]:ENEMIES[stage%2===0?1:0];
  const hp=base.hp+(stage-1)*7+(kind==="boss"?40:kind==="elite"?18:0);
  return {...clone(base),name:kind==="elite"?"Tinh Anh: "+base.name:base.name,
-   hp,maxHp:hp,attack:base.attack+Math.floor((stage-1)*1.5)+(kind==="elite"?2:0),
+   hp,maxHp:hp,poison:0,attack:base.attack+Math.floor((stage-1)*1.5)+(kind==="elite"?2:0),
    defend:base.defend+stage-1,shield:0,burn:0,bleed:0,frost:0,mark:0};
 };
 export function createGame(){
  const additions=shuffled(BONUS_POOL).slice(0,2);
  const g={
-  version:"0.2.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
+  version:"0.3.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
   energy:3,maxEnergy:3,power:0,gold:35,route:[],position:1,map:generateMap(),
+  summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,
   currentNode:null,shopStock:[],eventId:null,phase:"map",enemy:enemyTemplate(1),
   draw:shuffled([...START_DECK,...additions].map(makeCard)),discard:[],hand:[],selected:[],
   reward:[],log:[],lastMessage:"",stats:{damage:0,played:0,turns:0},lastEvent:null
@@ -101,16 +104,34 @@ const attack = (g,amount,note) => {
 const hit = (g,base,note,boost=true) => attack(g,base+(boost?g.power*2:0),note);
 const heal = (g,n) => {const restored=Math.min(g.maxHp-g.hp,n);g.hp+=restored; if(restored)msg(g,"Hồi phục "+restored+" Máu.");};
 const block = (g,n) => {g.block+=n;msg(g,"Nhận "+n+" Khiên.");g.lastEvent={kind:"shield",amount:n};};
+const addStatus=(g,kind,amount)=>{g.enemy[kind]=Math.min(99,(g.enemy[kind]||0)+amount);};
+const summonCount=g=>g.summons.wisp+g.summons.golem;
+const gainPassive=(g,id)=>{
+ const current=g.passives[id]||0;
+ if(current<2){g.passives[id]=current+1;msg(g,CARDS[id].name+" kích hoạt (tầng "+(current+1)+"/2).");}
+ else{block(g,6);msg(g,CARDS[id].name+" đã tối đa, chuyển thành 6 Khiên.");}
+};
+const readyReaction=(g,id)=>{
+ g.reactions[id]=Math.min(2,(g.reactions[id]||0)+1);
+ msg(g,CARDS[id].name+" sẵn sàng ("+g.reactions[id]+").");
+};
+
 export function playCard(g,uid){
   if(g.phase!=="animating" && g.phase!=="planning")return false;
   const at=g.hand.findIndex(x=>x.uid===uid);
   if(at<0 || !g.selected.includes(uid))return false;
-  const c=g.hand.splice(at,1)[0], info=CARDS[c.id];
+  const c=g.hand[at], info=CARDS[c.id];
+  if(info.cost>g.energy)return false;
+  g.hand.splice(at,1);
   g.selected.splice(g.selected.indexOf(uid),1);
   g.energy-=info.cost;g.discard.push(c);g.stats.played++;
   msg(g,"Thi triển "+info.name+".");
   g.lastEvent={kind:info.kind,school:info.school};
   const e=g.enemy;
+  if(info.school==="Kiếm Đạo"&&info.kind==="attack"&&g.passives.swordmaster&&g.lastSwordTurn!==g.turn){
+    g.power+=g.passives.swordmaster;g.lastSwordTurn=g.turn;
+    msg(g,"Kiếm Tâm: +"+g.passives.swordmaster+" Kiếm Ý.");
+  }
   switch(c.id){
     case "blade":hit(g,9,info.name);break;
     case "guard":block(g,10);break;
