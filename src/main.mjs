@@ -79,7 +79,7 @@ function journeyScreen(){
  const header='<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.4</i></small></div></div>'+
  '<div class="top-meta"><span class="meta-pill">MÁU <b>'+game.hp+'/'+game.maxHp+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span></div>'+
  '<div class="top-actions"><button class="text-btn" data-action="collection">Bộ thẻ</button><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button></div></header>';
- const title=game.phase==="map"?"Chọn nhánh tiếp theo":game.phase==="shop"?"Thương nhân tinh giới":game.phase==="rest"?"Điểm nghỉ giữa các vì sao":"Sự kiện bí ẩn";
+ const title=game.phase==="map"?"Chọn nhánh tiếp theo":game.phase==="shop"?"Thương nhân tinh giới":game.phase==="rest"?"Điểm nghỉ giữa các vì sao":game.phase==="upgrade"?"Rèn luyện thẻ bài":"Sự kiện bí ẩn";
  let body="";
  if(game.phase==="map"){
    const active=availableNodes(game).map(n=>n.id),past=game.route;
@@ -100,11 +100,20 @@ function journeyScreen(){
    }).join('')+
    '<div class="journey-item"><div class="journey-item-icon">'+icon("blood")+'</div><div><h3>Thuốc Hồi Phục</h3><p>Hồi tối đa 22 Máu.</p></div>'+
    '<button data-action="potion" '+(game.gold<24||game.hp===game.maxHp?'disabled':'')+'>24 vàng</button></div></div>'+
-   '<button class="play-button journey-continue" data-action="leave-shop">RỜI CỬA HÀNG →</button>';
+   (game.shopRelic&&RELICS[game.shopRelic]?'<div class="journey-item relic-purchase"><div class="journey-item-icon">'+relicIcon(game.shopRelic)+'</div><div><h3>'+RELICS[game.shopRelic].name+' · DI VẬT</h3><p>'+RELICS[game.shopRelic].desc+'</p></div><button data-buy-relic="'+game.shopRelic+'" '+(game.gold<RELICS[game.shopRelic].price?'disabled':'')+'>'+RELICS[game.shopRelic].price+' vàng</button></div>':'')+
+   '<div class="journey-item"><div class="journey-item-icon">'+icon("sword")+'</div><div><h3>Lò Rèn Tinh Giới</h3><p>Cường hóa một lá trong bộ bài lên cấp +1.</p></div><button data-action="shop-upgrade" '+(game.shopUpgradeUsed||game.gold<45||!upgradableCards(game).length?'disabled':'')+'>'+(game.shopUpgradeUsed?'ĐÃ RÈN':'45 vàng')+'</button></div>'+
+   '</div><button class="play-button journey-continue" data-action="leave-shop">RỜI CỬA HÀNG →</button>';
  }else if(game.phase==="rest"){
    body='<p class="journey-hint">Chỉ chọn một hình thức nghỉ ngơi.</p><div class="journey-choice-grid">'+
    '<button class="journey-choice" data-rest="heal"><span class="choice-icon">☘</span><strong>Tĩnh Dưỡng</strong><small>Hồi tối đa 25 Máu.</small></button>'+
-   '<button class="journey-choice" data-rest="vitality"><span class="choice-icon">✧</span><strong>Rèn Luyện Thể Phách</strong><small>Tăng 8 Máu tối đa và hồi 8 Máu.</small></button></div>';
+   '<button class="journey-choice" data-rest="vitality"><span class="choice-icon">✧</span><strong>Rèn Luyện Thể Phách</strong><small>Tăng 8 Máu tối đa và hồi 8 Máu.</small></button>'+
+   '<button class="journey-choice" data-rest="upgrade" '+(!upgradableCards(game).length?'disabled':'')+'><span class="choice-icon">⚒</span><strong>Rèn Thẻ +1</strong><small>Chọn một lá trong bộ bài và cường hóa miễn phí.</small></button></div>';
+ }else if(game.phase==="upgrade"){
+   body='<p class="journey-hint">Chọn một thẻ chưa rèn để nâng lên +1. Thẻ gây sát thương nhận đòn bổ sung +5; thẻ hỗ trợ nhận 5 Khiên khi thi triển.</p>'+
+     '<div class="forge-grid">'+upgradableCards(game).map(c=>{const d=CARDS[c.id];
+       return '<button class="forge-card skill-'+d.icon+'" data-upgrade="'+c.uid+'">'+icon(d.icon)+
+        '<strong>'+d.name+'</strong><span>'+d.school+' · '+d.cost+' năng lượng</span><small>'+d.desc+'</small><b>RÈN +1</b></button>';
+     }).join("")+'</div><button class="ghost-btn journey-continue" data-action="cancel-upgrade">← QUAY LẠI</button>';
  }else{
    const event=EVENTS[game.eventId];
    body='<div class="journey-event"><div class="event-sigil">◈</div><h2>'+event.title+'</h2><p>'+event.desc+'</p></div>'+
@@ -115,13 +124,14 @@ function journeyScreen(){
      }).join('')+'</div>';
  }
  return '<div class="shell journey-shell">'+header+'<div class="journey-top"><div><span class="eyebrow">HÀNH TRÌNH TINH GIỚI</span><h1>'+title+'</h1><p class="muted">'+game.lastMessage+'</p></div>'+
-   '<button class="ghost-btn" data-action="restart">Chơi mới</button></div>'+body+
+   '<button class="ghost-btn" data-action="restart">Chơi mới</button></div>'+
+   '<div class="journey-relics"><span class="eyebrow">DI VẬT ĐANG SỞ HỮU</span>'+relicStrip()+'</div>'+body+
    '<div class="journey-bottom"><span>✦ Tiến trình tự động lưu trên trình duyệt này.</span><span>Đã đi '+game.route.length+' / 6 tầng</span></div></div>'+
    (showHelp||showCollection||showLog?overlay():'');
 }
 
 function render(){
-  if(["map","shop","rest","event"].includes(game.phase)){app.innerHTML=journeyScreen();persist();return;}
+  if(["map","shop","rest","upgrade","event"].includes(game.phase)){app.innerHTML=journeyScreen();persist();return;}
   const oldScroll=app.querySelector(".hand-scroll")?.scrollLeft||0;
   const e=game.enemy,intent=getIntent(game),cost=queuedCost(game),queue=game.selected.map(uid=>game.hand.find(x=>x.uid===uid)).filter(Boolean);
   app.innerHTML='<div class="shell">'+
