@@ -84,7 +84,7 @@ export function createGame(){
   summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,extraPlanning:false,
   currentNode:null,shopStock:[],shopRelic:null,shopUpgradeUsed:false,eventId:null,phase:"map",enemy:enemyTemplate(1),
   relics:[],lastRelic:null,upgradeFrom:null,
-  divineOffers:[],ascensionPending:false,ascensionsTaken:0,divineEffects:{thunderTurns:0,reviveReady:false},
+  divineOffers:[],ascensionPending:false,ascensionsTaken:0,divineEffects:{thunderTurns:0,reviveReady:false,reviveUsed:false},
   draw:shuffled([...START_DECK,...additions].map(makeCard)),discard:[],hand:[],selected:[],
   reward:[],log:[],lastMessage:"",stats:{damage:0,played:0,turns:0},lastEvent:null
  };
@@ -132,7 +132,10 @@ const gainPassive=(g,id)=>{
 const OFFENSIVE_UPGRADE=new Set([
  "blade","twin","spark","ember","frost","bleed","leech","shatter","chain","ignite","reap",
  "storm","meteor","glacier","cosmos","riposte","venom","toxinburst","serpent","timecut",
- "timeloop","sacrifice","spiritbond","steam","thunderfire","crystalbolt","bloodflame","entropy"
+ "timeloop","sacrifice","spiritbond","steam","thunderfire","crystalbolt","bloodflame","entropy",
+ "god_thunder","god_flame","god_frost","god_blood","god_venom","god_cosmos",
+ "mystery_void","mystery_paradox","mystery_eclipse","mystery_genesis",
+ "evo_blade","evo_spark","evo_ember","evo_frost","evo_bleed","evo_venom"
 ]);
 const readyReaction=(g,id)=>{
  g.reactions[id]=Math.min(2,(g.reactions[id]||0)+1);
@@ -176,6 +179,49 @@ export function playCard(g,uid){
     case "phoenix":heal(g,12);block(g,10);e.bleed+=2;break;
     case "cosmos":for(let i=0;i<3;i++)hit(g,10,info.name);break;
     case "riposte":block(g,8);hit(g,Math.floor(g.block/2),info.name,false);break;
+
+    // V0.5 Divine Skills: high-impact cards cannot be obtained through ordinary pools.
+    case "god_thunder":hit(g,24+e.mark*4,info.name);addStatus(g,"mark",3);g.divineEffects.thunderTurns=Math.max(g.divineEffects.thunderTurns,2);break;
+    case "god_flame":hit(g,24,info.name);addStatus(g,"burn",5);heal(g,9);break;
+    case "god_frost":hit(g,15,info.name);addStatus(g,"frost",5);block(g,15);break;
+    case "god_blood":if(g.hp>6){g.hp-=6;msg(g,"Hiến 6 Máu để giải phóng Huyết Thần.");}
+      hit(g,23+e.bleed*4,info.name);addStatus(g,"bleed",3);heal(g,10);break;
+    case "god_venom":addStatus(g,"poison",8);hit(g,3*e.poison,info.name,false);break;
+    case "god_time":{const before=g.hand.length;draw(g,2);g.energy=Math.min(g.maxEnergy+1,g.energy+1);block(g,8);
+      if(g.hand.length>before||g.hand.some(x=>CARDS[x.id].cost<=g.energy))g.extraPlanning=true;break;}
+    case "god_summon":g.summons.wisp=Math.min(4,g.summons.wisp+2);
+      g.summons.golem=Math.min(3,g.summons.golem+1);block(g,8);break;
+    case "god_cosmos":{const count=["mark","burn","frost","bleed","poison"].filter(k=>e[k]>0).length;
+      hit(g,16+count*6,info.name);for(const kind of ["mark","burn","frost","bleed","poison"])addStatus(g,kind,1);break;}
+    // Secret Skills: bounded effects, no self-copy or endless extra action.
+    case "mystery_void":{const types=["mark","burn","frost","bleed","poison"].filter(k=>e[k]>0);
+      if(types.length){hit(g,types.length*12,info.name,false);block(g,types.length*5);
+        for(const kind of types)e[kind]=0;}else block(g,15);break;}
+    case "mystery_immortal":
+      if(!g.divineEffects.reviveReady&&!g.divineEffects.reviveUsed){
+        g.divineEffects.reviveReady=true;msg(g,"Thần Hồn đã chuẩn bị hồi sinh một lần.");
+      }else block(g,12);break;
+    case "mystery_paradox":{
+      if(g.lastOffensive)hit(g,14,"Nghịch Lý: dư âm",false);
+      const before=g.hand.length;draw(g,1);g.energy=Math.min(g.maxEnergy+1,g.energy+1);
+      if(g.hand.length>before||g.hand.some(x=>CARDS[x.id].cost<=g.energy))g.extraPlanning=true;
+      break;}
+    case "mystery_eclipse":{const dual=e.burn>0&&e.frost>0;
+      hit(g,18,info.name);if(dual)hit(g,18,"Song Sinh nhật nguyệt",false);
+      addStatus(g,"burn",3);addStatus(g,"frost",3);break;}
+    case "mystery_genesis":{const united=["mark","burn","frost","bleed","poison"].every(k=>e[k]>0);
+      hit(g,united?36:18,info.name,false);
+      for(const kind of ["mark","burn","frost","bleed","poison"])addStatus(g,kind,2);break;}
+    // Branch evolutions: the base card's UID and forge level are preserved.
+    case "evo_blade":for(let i=0;i<3;i++)hit(g,9,info.name);break;
+    case "evo_spark":hit(g,12,info.name);addStatus(g,"mark",4);break;
+    case "evo_ember":hit(g,9,info.name);addStatus(g,"burn",4);break;
+    case "evo_frost":hit(g,9,info.name);addStatus(g,"frost",4);block(g,5);break;
+    case "evo_bleed":hit(g,9,info.name);addStatus(g,"bleed",4);heal(g,4);break;
+    case "evo_venom":hit(g,8,info.name);addStatus(g,"poison",5);break;
+    case "evo_wisp":g.summons.wisp=Math.min(4,g.summons.wisp+2);
+      g.summons.golem=Math.min(3,g.summons.golem+1);break;
+
     // Độc: apply stacks, burst poison, or turn poison into a defensive resource.
     case "venom":hit(g,5,info.name);addStatus(g,"poison",3);break;
     case "toxinburst":hit(g,8+e.poison*4,info.name);e.poison=Math.floor(e.poison/2);break;
@@ -249,7 +295,7 @@ export function playCard(g,uid){
       attack(g,5,"Cường hóa "+info.name);
     else block(g,5);
   }
-  if((info.kind==="attack"||info.kind==="magic")&&!["quicken","rewind","timeloop"].includes(c.id))
+  if((info.kind==="attack"||info.kind==="magic")&&!["quicken","rewind","timeloop","god_time","mystery_paradox"].includes(c.id))
     g.lastOffensive={id:c.id,school:info.school};
   if(g.enemy.hp<=0)wonFight(g);
   return true;
@@ -280,6 +326,8 @@ function applyDamage(g,n,pierce=0){
  const absorb=Math.min(g.block,Math.max(0,n-bypass));
  g.block-=absorb;const real=Math.max(0,n-absorb);
  g.hp=Math.max(0,g.hp-real);
+ if(g.hp===0&&g.divineEffects.reviveReady){g.divineEffects.reviveReady=false;g.divineEffects.reviveUsed=true;
+   g.hp=Math.min(g.maxHp,35);msg(g,"Bất Diệt Thần Hồn hồi sinh với "+g.hp+" Máu!");}
  msg(g,"Kẻ địch đánh "+n+" sát thương"+(absorb?" • Khiên đỡ "+absorb:"")+(bypass?" • xuyên "+bypass:"")+".");
  g.lastEvent={kind:"enemy",amount:real};
 }
@@ -305,6 +353,7 @@ export function finishTurn(g){
  if(e.hp>0&&e.bleed){attack(g,e.bleed*2,"Xuất Huyết");e.bleed=Math.max(0,e.bleed-1);}
  if(e.hp>0&&e.poison){attack(g,e.poison*3,"Độc Tố");e.poison=Math.max(0,e.poison-1);}
  if(e.hp>0&&g.summons.wisp)attack(g,g.summons.wisp*(hasRelic(g,"spiritbell")?5:3),"Linh Hồn tấn công");
+ if(e.hp>0&&g.divineEffects.thunderTurns>0){attack(g,7,"Dư Âm Thiên Lôi");g.divineEffects.thunderTurns--;}
  if(e.hp<=0){wonFight(g);return g.phase;}
  const intent=getIntent(g);
  if(intent.kind==="shield"||intent.kind==="fortify"){
@@ -345,7 +394,7 @@ export function chooseNode(g,id){
  g.selected=[];g.block=0;g.power=0;
  if(["battle","elite","boss"].includes(node.kind)){
    g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind);
-   g.divineEffects={thunderTurns:0,reviveReady:false};
+   g.divineEffects={thunderTurns:0,reviveReady:false,reviveUsed:false};
    if(hasRelic(g,"starward"))g.block+=10;
    g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;g.extraPlanning=false;
    g.draw=shuffled([...g.draw,...g.discard,...g.hand]);g.hand=[];g.discard=[];
