@@ -196,7 +196,7 @@ function overlay(){
    return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal collection">'+
      '<button class="modal-close" data-action="close">×</button><span class="eyebrow">'+CARD_POOL.length+
      ' KỸ NĂNG</span><h2>Thư viện thẻ V0.5</h2>'+
-     '<p class="muted">30 thẻ mới thuộc Độc, Thời Không, Triệu Hồi, Hỗn Mang, Thiên Phú và Phản Ứng. Chọn nhóm để tìm thẻ phù hợp.</p>'+
+     '<p class="muted">70 thẻ: 50 kỹ năng thường, 8 Thần Kỹ, 5 Thần Bí Kỹ và 7 biến thể Tiến Hóa. Thần Kỹ xuất hiện tại Thần Đàn sau trận Tinh Anh.</p>'+
      '<div class="library-filters">'+CARD_FILTERS.map(f=>'<button class="'+(collectionFilter===f.value?'active':'')+
        '" data-filter="'+f.value+'">'+f.label+'</button>').join('')+'</div>'+
      '<div class="library-count">Đang hiển thị '+filtered.length+' / '+CARD_POOL.length+' thẻ</div>'+
