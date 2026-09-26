@@ -391,6 +391,10 @@ export function upgradeCard(g,uid){
  msg(g,"Rèn luyện thành công: "+CARDS[card.id].name+" +1.");
  return true;
 }
+export function cancelUpgrade(g){
+ if(g.phase!=="upgrade"||!["rest","shop"].includes(g.upgradeFrom))return false;
+ g.phase=g.upgradeFrom;g.upgradeFrom=null;return true;
+}
 export function leaveShop(g){
  if(g.phase!=="shop")return false;
  g.shopStock=[];g.shopRelic=null;g.phase="map";msg(g,"Rời cửa hàng. Chọn nhánh tiếp theo.");return true;
