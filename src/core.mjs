@@ -48,6 +48,10 @@ const shuffled = arr => {const a=[...arr];for(let i=a.length-1;i>0;i--){const j=
 const msg = (g,s) => {g.log.unshift(s); g.log.length=Math.min(g.log.length,20); g.lastMessage=s;};
 export function getIntent(g){
  const cycle=(g.turn-1)%4,e=g.enemy;
+ if(e.act===2&&e.kind!=="boss"&&cycle===0&&g.turn>1)
+   return {kind:"drain",value:e.attack+2,label:"Hư Không Hấp Huyết",hint:"Gây "+(e.attack+2)+" sát thương, hút 4 Máu nếu trúng"};
+ if(e.act===3&&e.kind!=="boss"&&cycle===3)
+   return {kind:"rupture",value:e.attack+5,label:"Long Khí Phá Giáp",hint:"Gây "+(e.attack+5)+" sát thương, xuyên 30% Khiên"};
  if(e.kind==="boss"&&e.hp<=e.maxHp/2){
    if(cycle===1)return {kind:"fortify",value:e.defend+3,label:"Hấp Thụ Tinh Vân",hint:"Nhận Khiên, hồi 6 Máu"};
    if(cycle===3)return {kind:"nova",value:e.attack+7,label:"Tinh Vân Bùng Nổ",hint:"Đòn đánh xuyên 25% Khiên"};
@@ -386,14 +390,39 @@ export function finishTurn(g){
    if(guards>0)block(g,guards);
    const chill=e.frost>0?Math.min(intent.value,e.frost*2):0;
    if(chill)msg(g,"Băng Giá giảm "+chill+" sát thương địch.");
-   reactToAttack(g,intent.value-chill,intent.kind==="pierce"?.5:intent.kind==="nova"?.25:0);
+   const hpBefore=g.hp;
+   reactToAttack(g,intent.value-chill,intent.kind==="pierce"?.5:intent.kind==="nova"?.25:intent.kind==="rupture"?.3:0);
+   if(intent.kind==="drain"&&g.hp<hpBefore){e.hp=Math.min(e.maxHp,e.hp+4);msg(g,e.name+" hấp thu 4 Máu.");}
  }
  e.frost=Math.max(0,e.frost-1);e.mark=Math.max(0,e.mark-1);
- if(g.hp<=0){g.phase="lost";msg(g,"Hành trình kết thúc ở ải "+g.stage+".");return g.phase;}
+ if(g.hp<=0){g.phase="lost";msg(g,"Hành trình kết thúc tại "+REALMS[g.act-1].name+", tầng "+g.stage+".");return g.phase;}
  if(e.hp<=0){wonFight(g);return g.phase;}
  g.block=0;g.turn++;g.energy=g.maxEnergy;
  g.discard.push(...g.hand.splice(0));draw(g,5);
  g.phase="planning";return g.phase;
+}
+export function chooseActBoon(g,id){
+ if(g.phase!=="act-clear"||g.act>=REALMS.length||!g.actReward.includes(id)||!ACT_BOONS[id]||
+   g.stage!==MAP_ROWS.length||g.bossesDefeated!==g.act)return false;
+ if(id==="vitality"){
+   g.maxHp+=12;g.hp=Math.min(g.maxHp,g.hp+24);
+ }else if(id==="riches")g.gold+=90;
+ else if(id==="blessing"){
+   const relic=relicOffer(g);
+   if(relic){g.relics.push(relic);msg(g,"Nhận Di Vật: "+RELICS[relic].name+".");}
+   else g.gold+=60;
+   g.hp=Math.min(g.maxHp,g.hp+12);
+ }
+ const cleared=g.act;
+ g.actHistory.push({act:cleared,route:[...g.route]});
+ g.actBoons.push(id);g.actReward=[];
+ g.act++;
+ g.route=[];g.stage=0;g.position=1;g.map=generateMap();
+ g.currentNode=null;g.shopStock=[];g.shopRelic=null;g.eventId=null;g.reward=[];
+ g.hand=[];g.selected=[];g.block=0;g.power=0;g.energy=g.maxEnergy;
+ g.phase="map";
+ msg(g,"Chúc phúc "+ACT_BOONS[id].name+". Tiến vào "+REALMS[g.act-1].name+"!");
+ return true;
 }
 export function chooseReward(g,id){
  if(g.phase!=="reward"||!g.reward.includes(id))return false;
