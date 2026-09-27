@@ -361,3 +361,78 @@ button{font:inherit;cursor:pointer}button:disabled{opacity:.54;cursor:not-allowe
  .ascend-intro:before,.ascend-card:before,.ascend-sigil{animation:none!important}
  .ascend-card:hover{transform:none}
 }
+
+
+/* V0.6 — Three Realms: galaxy maps with distinct palettes and persistent achievements. */
+.shell.realm-nebula{--realm-accent:#a89af3;--realm-soft:#af8ff44a;--realm-back:#1e2140}
+.shell.realm-void{--realm-accent:#7fc5ed;--realm-soft:#4f9dda55;--realm-back:#0b2740}
+.shell.realm-chaos{--realm-accent:#e7acbd;--realm-soft:#d976ad50;--realm-back:#342342}
+.realm-map-intro{position:relative;overflow:hidden;text-align:center;margin:10px 0 14px;border:1px solid var(--realm-accent,#ae9bf3);
+ background:radial-gradient(ellipse at 50% -40%,var(--realm-soft,#7764cb66),transparent 85%),
+ linear-gradient(110deg,var(--realm-back,#1e2140),#0c1632);
+ border-radius:17px;padding:20px 15px}
+.realm-map-intro:after{content:"✧  ✦  ✧";position:absolute;right:8%;top:6px;letter-spacing:.9em;color:var(--realm-accent,#eee);opacity:.45}
+.realm-map-intro h2{font-size:clamp(21px,3.6vw,28px);margin:5px 0;color:#f6efff}
+.realm-map-intro p{font-size:12px;line-height:1.6;color:#c6d4e5;margin:0}
+.realm-void .route-map{background:radial-gradient(ellipse at 55% 35%,#3569a64a,transparent 70%),linear-gradient(145deg,#0b1d3c,#0b152a);border-color:#5eacd269}
+.realm-chaos .route-map{background:radial-gradient(ellipse at 50% 40%,#ab487e52,transparent 65%),linear-gradient(160deg,#281a40,#131329);border-color:#c47fb471}
+.realm-void .route-node.is-available{border-color:#94ddf3;background:linear-gradient(155deg,#254e68,#172b48)}
+.realm-chaos .route-node.is-available{border-color:#f9c4de;background:linear-gradient(155deg,#6f3565,#332343)}
+.realm-void .route-node.is-available .route-symbol{color:#d2f7ff}
+.realm-chaos .route-node.is-available .route-symbol{color:#ffe2df}
+.realm-void .arena{background:radial-gradient(ellipse at 50% 42%,#284b7755,transparent 68%),linear-gradient(150deg,#081a36,#0b1528)}
+.realm-chaos .arena{background:radial-gradient(ellipse at 60% 24%,#ab407e55,transparent 64%),linear-gradient(155deg,#241534,#0c102b)}
+.realm-void .arena-kicker{color:#a9deef}.realm-chaos .arena-kicker{color:#e8abcb}
+.realm-side{padding:9px 11px;border:1px solid #a99ed35c;border-radius:10px;background:#322d4b57;margin:4px 0 12px;display:grid;gap:4px}
+.realm-side strong{color:#f2e6ff;font-size:12px;line-height:1.5}
+.realm-side small{color:#b5cce0;font-size:10px}
+.realm-cleared{position:relative;text-align:center;padding:35px 22px;border:1px solid var(--realm-accent,#bdafef);
+ border-radius:20px;background:radial-gradient(ellipse at 50% 0,var(--realm-soft,#6355ab4d),transparent 70%),linear-gradient(155deg,var(--realm-back,#1c2141),#0c1327)}
+.realm-cleared-sigil{display:block;font-size:70px;color:#ffe4af;text-shadow:0 0 32px #c09ffa;margin-bottom:5px;animation:ascendGlow 3.5s ease-in-out infinite}
+.realm-cleared h2{font-size:clamp(24px,4vw,35px);color:#ffefda;margin:7px 0}
+.realm-cleared p{font-size:12px;line-height:1.8;max-width:610px;margin:0 auto 18px;color:#c2d4e7}
+.realm-clear-stats{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap}
+.realm-clear-stats span{border:1px solid #ffffff35;padding:9px 15px;border-radius:9px;font-size:11px;color:#c8d1e8;background:#0002}
+.realm-clear-stats b{color:#ffe1a5;font-size:14px}
+.boon-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0 25px}
+.boon-card{min-height:244px;display:flex;align-items:center;flex-direction:column;gap:14px;padding:22px 16px;
+ border-radius:17px;border:1px solid #e1c88f94;background:radial-gradient(circle at 50% 20%,#ad88bd4b,transparent 68%),#1d2744;
+ color:#f4ebfc;transition:transform .18s,border-color .18s,box-shadow .18s}
+.boon-card:hover{transform:translateY(-4px);border-color:#ffebc5;box-shadow:0 0 30px #e0c58a36}
+.boon-card .boon-icon{display:grid;place-items:center;min-height:68px}
+.boon-card svg{width:60px;height:60px;color:#f5e4ad;filter:drop-shadow(0 0 12px #e0b97a)}
+.boon-card strong{font-size:16px;color:#fff0d0}.boon-card small{font-size:11px;line-height:1.7;color:#c1cee1;flex:1}
+.boon-card b{font-size:10px;color:#ffdfa7;border-top:1px solid #e4cb9270;padding-top:11px;width:100%}
+.achievements-modal{max-height:90vh}
+.achievement-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:16px 0}
+.achievement-summary span{display:grid;gap:5px;border:1px solid #9187be70;border-radius:11px;padding:12px;
+ font-size:10px;color:#ccd5eb;text-align:center;background:#27305277}
+.achievement-summary b{font-size:21px;color:#fae1af}
+.achievement-perks{padding:13px 16px;background:linear-gradient(110deg,#5d503761,#3a3a6352);
+ border:1px solid #e9c88d85;border-radius:12px;margin:0 0 18px}
+.achievement-perks strong{font-size:11px;letter-spacing:.06em;color:#f6e1af}
+.achievement-perks p{font-size:12px;color:#d7e2ed;line-height:1.6;margin:8px 0 0}
+.achievement-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:19px}
+.achievement-tile{min-width:0;display:flex;align-items:start;gap:10px;padding:13px 10px;
+ border:1px solid #9a9cb665;border-radius:11px;background:#27324b6a}
+.achievement-tile.earned{border-color:#d7c48e;background:linear-gradient(130deg,#6255375d,#212b47)}
+.achievement-tile.locked{opacity:.68}
+.achievement-mark{font-size:27px;line-height:1;color:#eed495}
+.achievement-tile>div{flex:1;min-width:0;display:grid;gap:4px}
+.achievement-tile strong{font-size:12px;color:#f9e9cc;line-height:1.45}
+.achievement-tile small{font-size:10px;color:#d1d9e9;line-height:1.45}
+.achievement-tile p{font-size:10px;color:#b5cfca;margin:0;line-height:1.5}
+.achievement-state{font-size:9px;color:#f4e0b1;white-space:nowrap}
+@media(max-width:650px){
+ .boon-grid{grid-template-columns:1fr;gap:9px}
+ .boon-card{min-height:116px;display:grid;grid-template-columns:54px 1fr;grid-template-areas:"icon title" "icon desc" "cta cta";
+ column-gap:12px;align-items:center;text-align:left;padding:12px;gap:7px}
+ .boon-card .boon-icon{grid-area:icon;min-height:52px}.boon-card svg{width:49px;height:49px}
+ .boon-card strong{grid-area:title;font-size:14px}.boon-card small{grid-area:desc}
+ .boon-card b{grid-area:cta;text-align:center;padding-top:7px}
+ .realm-cleared{padding:22px 11px}.realm-cleared-sigil{font-size:50px}
+ .achievement-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .achievement-grid{grid-template-columns:1fr}
+ .achievements-modal{padding:16px 10px}
+}
+@media(prefers-reduced-motion:reduce){.realm-cleared-sigil{animation:none!important}.boon-card:hover{transform:none}}
