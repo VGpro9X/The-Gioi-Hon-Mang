@@ -40,10 +40,10 @@ test("thắng trận nhận vàng, ba thẻ và hồi máu khi nhận thưởng"
  assert.equal(g.stage,1);assert.equal(g.hp,56);assert.equal(g.phase,"map");
  assert.ok(g.draw.concat(g.discard,g.hand).some(c=>c.id===reward));
 });
-test("hạ Boss chuyển trạng thái chiến thắng",()=>{
+test("hạ Boss khu vực I mở checkpoint Phúc Lành",()=>{
  const g=battle();g.stage=6;g.currentNode.kind="boss";
  g.enemy.hp=1;g.hand=[card("blade",41)];g.selected=[41];
- playCard(g,41);assert.equal(g.phase,"won");
+ playCard(g,41);assert.equal(g.phase,"act-clear");assert.equal(g.bossesDefeated,1);
 });
 test("khi máu bằng 0 chuyển trạng thái thất bại",()=>{
  const g=battle();g.hp=1;g.hand=[];g.selected=[];
