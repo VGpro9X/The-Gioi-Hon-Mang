@@ -27,8 +27,8 @@
 | V0.2 | Bản đồ 6 tầng phân nhánh, cửa hàng, sự kiện, điểm nghỉ, vàng và tự lưu | Đã hoàn thành và được yêu cầu tiếp tục V0.3 |
 | V0.3 | Mở rộng 50 thẻ, Độc/Thời Không/Triệu Hồi, combo, Thiên Phú và Phản Ứng | Đã phát hành và được người dùng chấp thuận tiếp tục V0.4 |
 | V0.4 | 50 hiệu ứng riêng, rèn thẻ +1, 6 Di Vật, Tinh Anh Xuyên Giáp và Boss chuyển pha | Đã phát hành, người dùng chấp thuận tiếp tục V0.5 |
-| V0.5 | 8 Thần Kỹ, 5 Thần Bí Kỹ, 7 tiến hóa, Thần Đàn sau trận Tinh Anh và tỉ lệ tăng theo tầng | Đã phát hành lên GitHub Pages; 47/47 bài kiểm thử đạt; dừng chờ người dùng chơi/test |
-| V0.6 | Hành Trình đầy đủ với nhiều khu vực, cân bằng, thành tích và mở khóa | Chưa bắt đầu |
+| V0.5 | 8 Thần Kỹ, 5 Thần Bí Kỹ, 7 tiến hóa, Thần Đàn sau trận Tinh Anh và tỉ lệ tăng theo tầng | Đã phát hành, người dùng yêu cầu tiếp tục V0.6 |
+| V0.6 | Hành Trình Tam Giới 18 tầng, Phúc Lành, độ khó ba vùng, tám thành tích và mở khóa | Đã hoàn thiện mã, chờ triển khai Pages và người dùng test |
 | V0.7 | Chế độ Sinh Tồn vô hạn, tăng độ khó và thành tích cá nhân | Chưa bắt đầu |
 
 ## CẤU TRÚC V0.1
@@ -92,7 +92,7 @@
 **V0.4:** Đã triển khai GitHub Pages và người dùng yêu cầu tiếp tục V0.5.
 
 
-## V0.5 — CHECKPOINT HIỆN TẠI
+## V0.5 — CHECKPOINT ĐÃ HOÀN THÀNH
 
 - Bổ sung 20 thẻ đặc biệt: **8 Thần Kỹ** theo Lôi, Hỏa, Băng, Huyết, Độc, Thời Không, Triệu Hồi và Hỗn Mang; **5 Thần Bí Kỹ** gồm Vô Tướng Vô Hình, Bất Diệt Thần Hồn, Thời Không Nghịch Lý, Nhật Nguyệt Song Sinh, Hỗn Nguyên Khai Thiên; **7 biến thể Tiến Hóa** từ Kiếm Kích, Lôi Kiếm, Hỏa Cầu, Băng Trảm, Huyết Nhận, Độc Châm và Triệu Linh.
 - Tổng thư viện 70 thẻ; 50 thẻ thường vẫn là nguồn cho bài khởi đầu, rút thưởng thường, cửa hàng và sự kiện. Thần Kỹ/Thần Bí Kỹ chỉ nhận tại Thần Đàn sau khi đánh bại Tinh Anh; Tiến Hóa chỉ nhận qua biến đổi một lá vật lý sẵn có, giữ UID và cấp rèn +1 nếu có.
@@ -102,4 +102,17 @@
 - Tự động lưu V0.5, phục hồi bản lưu V0.2–V0.4 hợp lệ. Bản lưu cũ đang ở màn hình thưởng Tinh Anh được bổ sung một lần vào Thần Đàn.
 - Kiểm thử hồi quy mọi mốc trước đó và các bài kiểm thử mới: rò rỉ độ hiếm, xác suất theo tầng, giao diện Thần Đàn, tiến hóa duy nhất, hồi sinh có giới hạn, kích hoạt trạng thái, lưu/khôi phục.
 
-**DỪNG sau checkpoint V0.5:** Chạy đầy đủ GitHub Actions và xác nhận GitHub Pages cập nhật. Gửi liên kết công khai để người dùng test; chỉ chuyển sang V0.6 sau khi người dùng xác nhận.
+**V0.5:** Đã phát hành thành công và người dùng yêu cầu tiếp tục V0.6.
+
+
+## V0.6 — CHECKPOINT HIỆN TẠI
+
+- **Hành Trình Tam Giới** có ba khu vực riêng, mỗi khu vực sáu tầng và một Boss cuối: Tinh Vân Khởi Nguyên (Thủ Vệ Tinh Giới), Vực Sâu Hư Không (Chúa Tể Hư Không) và Long Mạch Hỗn Mang (Hỗn Mang Thần Long). Tổng cộng 18 tầng; mỗi khu vực tạo bản đồ mới với nhánh ngẫu nhiên, có giao diện, tên kẻ địch và phối màu vũ trụ riêng.
+- **Cân bằng độ khó:** Quái, Tinh Anh và Boss vùng II có khoảng 1,23 lần Máu cùng +3 Công/+3 Phòng so với chỉ số nền; vùng III khoảng 1,53 lần Máu cùng +5 Công/+6 Phòng. Vùng II có đòn Hư Không Hấp Huyết; vùng III có đòn Long Khí Phá Giáp xuyên 30% Khiên. Vàng chiến thắng tăng +8 ở mỗi vùng tiếp theo; hồi máu khi chọn thưởng tăng +2 mỗi vùng.
+- **Phúc Lành liên khu vực:** sau Boss vùng I và II, chỉ chọn một trong ba lựa chọn: tăng 12 Máu tối đa và hồi 24, nhận 90 vàng, hoặc nhận một Di Vật chưa có (đã đủ Di Vật được 60 vàng) và hồi 12. Giữ bộ bài, thẻ rèn, vàng, Di Vật và chỉ số nhân vật; chỉ làm mới bản đồ và trạng thái riêng của trận đấu.
+- **8 thành tích**: vượt Boss vùng I, nhận Thần Kỹ/Thần Bí Kỹ, thu thập ba Di Vật, rèn ba lá, thắng Boss vùng II, hoàn thành ba vùng, hoàn thành khi còn từ 150 vàng, và hoàn thành khi còn từ 40 Máu. Hồ sơ thành tích và số lượt chơi/chiến thắng được lưu riêng trên trình duyệt.
+- **Mở khóa hữu ích cho lượt chơi sau:** vượt Boss vùng I mở +8 Máu tối đa khởi đầu; hoàn thành Tam Giới mở thêm một thẻ Uncommon trong bộ bài đầu. Giao diện Thành tích hiển thị đủ 8 mục và mục tiêu chưa hoàn thành.
+- **Tương thích bản lưu:** tự lưu V0.6 và khôi phục V0.2–V0.5 hợp lệ. Lượt chơi V0.5 đã hoàn thành Boss sáu tầng có thể tiếp tục từ Phúc Lành vùng I để bước vào vùng II. Kiểm tra trạng thái giữa các vùng khi khôi phục, bảo vệ dữ liệu nếu bản lưu không hợp lệ.
+- **Kiểm thử:** hồi quy toàn bộ phiên bản cũ, mô phỏng 18 tầng qua ba vùng, kiểm tra hành vi đặc biệt quái, phần thưởng chuyển vùng, di vật/thẻ giữ nguyên, hồ sơ idempotent, khôi phục bản lưu cũ và thao tác UI. Đồng thời sửa cách đếm lượt để trận chiến thắng ngay lượt đầu vẫn được ghi vào thống kê.
+
+**DỪNG SAU V0.6:** Chỉ phát hành khi đầy đủ kiểm thử Node và GitHub Pages thành công. Báo người dùng đường dẫn chơi/test trên PC, điện thoại; không bắt đầu V0.7 (Sinh Tồn vô hạn) cho tới khi người dùng test và xác nhận.
