@@ -94,7 +94,7 @@ export function createGame(profile=null){
  const additions=shuffled(BONUS_POOL).slice(0,2);
  if(perks.bonusUncommon)additions.push(shuffled(REGULAR_POOL.filter(id=>CARDS[id].rarity==="uncommon"))[0]);
  const g={
-  version:"0.6.0",stage:0,act:1,totalActs:REALMS.length,totalStages:MAP_ROWS.length,turn:1,maxHp:90+perks.maxHp,hp:90+perks.maxHp,block:0,
+  version:"0.6.0",stage:0,act:1,totalActs:REALMS.length,totalStages:MAP_ROWS.length,turn:1,turnCounted:false,maxHp:90+perks.maxHp,hp:90+perks.maxHp,block:0,
   bossesDefeated:0,actHistory:[],actBoons:[],actReward:[],profileRecorded:false,
   energy:3,maxEnergy:3,power:0,gold:35,route:[],position:1,map:generateMap(),
   summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,extraPlanning:false,
@@ -317,6 +317,7 @@ export function playCard(g,uid){
   return true;
 }
 function wonFight(g){
+ if(!g.turnCounted){g.stats.turns++;g.turnCounted=true;}
  msg(g,"Chiến thắng "+g.enemy.name+"!");
  if(g.currentNode?.kind==="boss"){
   g.bossesDefeated++;
@@ -370,7 +371,7 @@ function reactToAttack(g,value,pierce=0){
 }
 export function finishTurn(g){
  if(!["animating","planning"].includes(g.phase))return g.phase;
- g.selected=[];g.stats.turns++;
+ g.selected=[];if(!g.turnCounted){g.stats.turns++;g.turnCounted=true;}
  const e=g.enemy;
  if(e.burn){attack(g,e.burn*3,"Thiêu Đốt");e.burn=Math.max(0,e.burn-1);}
  if(e.hp>0&&e.bleed){attack(g,e.bleed*2,"Xuất Huyết");e.bleed=Math.max(0,e.bleed-1);}
@@ -397,7 +398,7 @@ export function finishTurn(g){
  e.frost=Math.max(0,e.frost-1);e.mark=Math.max(0,e.mark-1);
  if(g.hp<=0){g.phase="lost";msg(g,"Hành trình kết thúc tại "+REALMS[g.act-1].name+", tầng "+g.stage+".");return g.phase;}
  if(e.hp<=0){wonFight(g);return g.phase;}
- g.block=0;g.turn++;g.energy=g.maxEnergy;
+ g.block=0;g.turn++;g.turnCounted=false;g.energy=g.maxEnergy;
  g.discard.push(...g.hand.splice(0));draw(g,5);
  g.phase="planning";return g.phase;
 }
@@ -477,7 +478,7 @@ export function chooseNode(g,id){
  g.currentNode={...node};g.eventId=null;g.shopStock=[];
  g.selected=[];g.block=0;g.power=0;
  if(["battle","elite","boss"].includes(node.kind)){
-   g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind,g.act);
+   g.turn=1;g.turnCounted=false;g.enemy=enemyTemplate(g.stage,node.kind,g.act);
    g.divineEffects={thunderTurns:0,reviveReady:false,reviveUsed:false};
    if(hasRelic(g,"starward"))g.block+=10;
    g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;g.extraPlanning=false;
@@ -647,6 +648,7 @@ export function restoreGame(raw){
   if(g.actBoons===undefined)g.actBoons=[];
   if(g.actReward===undefined)g.actReward=legacy&&g.phase==="won"?Object.keys(ACT_BOONS):[];
   if(g.profileRecorded===undefined)g.profileRecorded=false;
+  if(g.turnCounted===undefined)g.turnCounted=false;
   if(legacy&&g.phase==="won"&&g.act===1){
     g.phase="act-clear";g.actReward=Object.keys(ACT_BOONS);
     msg(g,"Bạn đã hoàn thành V0.5. Chọn Phúc Lành để tiếp tục hành trình Tam Giới V0.6.");
@@ -663,7 +665,7 @@ export function restoreGame(raw){
      (g.phase==="act-clear"?(g.act>=3||g.stage!==6||g.actReward.length!==3||
        !Object.keys(ACT_BOONS).every(id=>g.actReward.includes(id))):g.actReward.length!==0)||
      (g.phase==="won"&&(g.act!==3||g.stage!==6))||
-     typeof g.profileRecorded!=="boolean")return null;
+     typeof g.profileRecorded!=="boolean"||typeof g.turnCounted!=="boolean")return null;
   g.enemy.act=g.enemy.act||g.act;
   g.version="0.6.0";
   nextUid=Math.max(nextUid,...all.map(c=>c.uid+1));return g;
