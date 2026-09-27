@@ -1,5 +1,6 @@
-import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent, chooseNode, availableNodes, buyCard, buyPotion, leaveShop, takeRest, chooseEvent, EVENTS, serializeGame, restoreGame, GOD_IDS, MYSTERY_IDS, EVOLUTIONS, evolutionCandidates, chooseDivine, evolveAtAscension, skipAscension, mysteryRate, RELICS, buyRelic, upgradableCards, startShopUpgrade, upgradeCard, cancelUpgrade} from "./core.mjs";
+import {CARDS, CARD_POOL, createGame, queueCard, unqueueCard, queuedCost, playCard, finishTurn, chooseReward, getIntent, chooseNode, availableNodes, buyCard, buyPotion, leaveShop, takeRest, chooseEvent, EVENTS, serializeGame, restoreGame, REALMS, ACT_BOONS, chooseActBoon, GOD_IDS, MYSTERY_IDS, EVOLUTIONS, evolutionCandidates, chooseDivine, evolveAtAscension, skipAscension, mysteryRate, RELICS, buyRelic, upgradableCards, startShopUpgrade, upgradeCard, cancelUpgrade} from "./core.mjs";
 import {effectMarkup} from "./effects.mjs";
+import {ACHIEVEMENTS,restoreProfile,newProfile,recordProfile,profileBonuses} from "./campaign.mjs";
 import {MAP_ROWS,NODE_INFO} from "./journey.mjs";
 const app=document.querySelector("#app");
 const wait=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -22,17 +23,23 @@ const enemyArt={
  boss:'<svg viewBox="0 0 230 250" class="actor-svg" aria-hidden="true"><defs><linearGradient id="bossGrad" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ae83ed"/><stop offset="1" stop-color="#3d367c"/></linearGradient></defs><path d="M42 212 65 97 112 72 169 96l22 117-73 19z" fill="#222445" stroke="#bc94ef" stroke-width="4"/><path d="M71 91 47 23l55 30 19-36 20 36 46-29-17 67-34 58H97z" fill="url(#bossGrad)" stroke="#efd1ff" stroke-width="4"/><path d="m84 102 25 8 11-6 13 6 25-8-18 29h-37z" fill="#271c43" stroke="#ed7df9" stroke-width="4"/><circle cx="121" cy="83" r="8" fill="#f1cbff"/><path d="M60 160 15 211m157-51 43 51" stroke="#cdb5ff" stroke-width="9"/><path d="m121 147 20 42-20 48-20-48z" fill="#d19fff" stroke="#fee3ff" stroke-width="3"/><path d="M54 22 24 12m151 11 30-11" stroke="#f0d8ff" stroke-width="5"/></svg>'
 };
 const heroArt='<svg viewBox="0 0 230 250" class="actor-svg" aria-hidden="true"><defs><linearGradient id="robe" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#5c70ab"/><stop offset="1" stop-color="#252943"/></linearGradient></defs><path d="m54 217 15-104 44-25 46 23 20 106z" fill="url(#robe)" stroke="#a0b4f1" stroke-width="4"/><path d="m73 112-26 18-17 89 41-21M166 113l22 18 11 88-40-18" fill="#343e65" stroke="#9cacf1" stroke-width="4"/><path d="m80 92 10-49 26-23 27 19 14 56-22 32H98z" fill="#7982a8" stroke="#c2d6fa" stroke-width="4"/><path d="m91 69 27-13 27 11-7 33-18 14-21-14z" fill="#111c38"/><path d="m99 86 15 4 17-4" stroke="#8fe7ff" stroke-width="5" stroke-linecap="round"/><path d="m114 125 0 93M72 195h96" stroke="#8ba4df" stroke-width="4"/><path d="M186 31 99 189m-14 18 22-26m-31 3 26 26" stroke="#b6ddff" stroke-width="7" stroke-linecap="round"/><path d="m186 31-12 48-19-12z" fill="#92dfff" stroke="#e3f7ff" stroke-width="3"/><path d="m33 215 20-28 26 29M153 217l25-29 24 28" fill="#2a385f" stroke="#a6b4ea" stroke-width="4"/></svg>';
-const SAVE_KEY="tghm-v05-save";
-const loadSaved=()=>{try{return restoreGame(localStorage.getItem(SAVE_KEY))||restoreGame(localStorage.getItem("tghm-v04-save"))||restoreGame(localStorage.getItem("tghm-v03-save"))||restoreGame(localStorage.getItem("tghm-v02-save"));}catch{return null;}};
-let game=loadSaved()||createGame(),busy=false,showHelp=false,showCollection=false,showLog=false,effectTimer=null,collectionFilter="all";
+const SAVE_KEY="tghm-v06-save",PROFILE_KEY="tghm-v06-profile";
+const loadProfile=()=>{try{return restoreProfile(localStorage.getItem(PROFILE_KEY));}catch{return newProfile();}};
+let profile=loadProfile();
+const loadSaved=()=>{try{return restoreGame(localStorage.getItem(SAVE_KEY))||restoreGame(localStorage.getItem("tghm-v05-save"))||restoreGame(localStorage.getItem("tghm-v04-save"))||restoreGame(localStorage.getItem("tghm-v03-save"))||restoreGame(localStorage.getItem("tghm-v02-save"));}catch{return null;}};
+let game=loadSaved()||createGame(profile),busy=false,showHelp=false,showCollection=false,showLog=false,showAchievements=false,effectTimer=null,collectionFilter="all";
+const realm=()=>REALMS[game.act-1]||REALMS[0];
+const syncProfile=()=>{const previous=JSON.stringify(profile);recordProfile(profile,game);
+ if(previous!==JSON.stringify(profile))try{localStorage.setItem(PROFILE_KEY,JSON.stringify(profile));}catch{};
+};
 const persist=()=>{if(busy||game.phase==="animating")return;try{localStorage.setItem(SAVE_KEY,serializeGame(game));}catch{}};
 function restart(){if(busy||!window.confirm("Bắt đầu hành trình mới? Tiến trình hiện tại trên thiết bị này sẽ bị thay thế."))return;
-  game=createGame();showHelp=false;showCollection=false;showLog=false;render();}
+  game=createGame(profile);showHelp=false;showCollection=false;showLog=false;showAchievements=false;render();}
 
 const safe=n=>Math.max(0,Math.round(n));
 const ratio=(value,max)=>Math.max(0,Math.min(100,(value/max)*100));
 const saveWin=()=>{try{const best=Number(localStorage.getItem("tghm-v01-clears")||0);localStorage.setItem("tghm-v01-clears",String(best+1));}catch{}};
-const getWins=()=>{try{return Number(localStorage.getItem("tghm-v01-clears")||0);}catch{return 0;}};
+const getWins=()=>profile.wins;
 const CARD_FILTERS=[
  {value:"all",label:"Tất cả"},{value:"divine",label:"Thần Kỹ"},{value:"mystery",label:"Thần Bí Kỹ"},{value:"evolved",label:"Tiến Hóa"},{value:"passive",label:"Thiên Phú"},{value:"reaction",label:"Phản Ứng"},
  ...[...new Set(CARD_POOL.map(id=>CARDS[id].school))].map(school=>({value:school,label:school}))
@@ -79,7 +86,7 @@ function statsBlock(){
   game.log.slice(0,5).map((line,i)=>'<p class="'+(i===0?'latest':'')+'">'+line+'</p>').join("")+'</div>';
 }
 function journeyScreen(){
- const header='<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.5</i></small></div></div>'+
+ const header='<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.6</i></small></div></div>'+
  '<div class="top-meta"><span class="meta-pill">MÁU <b>'+game.hp+'/'+game.maxHp+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span></div>'+
  '<div class="top-actions"><button class="text-btn" data-action="collection">Bộ thẻ</button><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button></div></header>';
  const title=game.phase==="map"?"Chọn nhánh tiếp theo":game.phase==="shop"?"Thương nhân tinh giới":game.phase==="rest"?"Điểm nghỉ giữa các vì sao":game.phase==="upgrade"?"Rèn luyện thẻ bài":game.phase==="ascend"?"Thần Đàn Thức Tỉnh":"Sự kiện bí ẩn";
@@ -152,11 +159,12 @@ function journeyScreen(){
 }
 
 function render(){
-  if(["map","shop","rest","upgrade","ascend","event"].includes(game.phase)){app.innerHTML=journeyScreen();persist();return;}
+  syncProfile();
+  if(["map","shop","rest","upgrade","ascend","act-clear","event"].includes(game.phase)){app.innerHTML=journeyScreen();persist();return;}
   const oldScroll=app.querySelector(".hand-scroll")?.scrollLeft||0;
   const e=game.enemy,intent=getIntent(game),cost=queuedCost(game),queue=game.selected.map(uid=>game.hand.find(x=>x.uid===uid)).filter(Boolean);
   app.innerHTML='<div class="shell">'+
-    '<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.5</i></small></div></div>'+
+    '<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.6</i></small></div></div>'+
     '<div class="top-meta"><span class="meta-pill">ẢI <b>'+game.stage+' / '+game.totalStages+'</b></span><span class="meta-pill">LƯỢT <b>'+game.turn+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span><span class="meta-pill desktop-only">HOÀN THÀNH <b>'+getWins()+'</b></span></div>'+
     '<div class="top-actions"><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button><button class="text-btn" data-action="collection">Bộ thẻ</button></div></header>'+
     '<div class="game-layout"><section class="main-column"><div class="arena">'+
@@ -179,7 +187,7 @@ function render(){
     '<section class="hand-panel"><div class="hand-head"><div><span class="eyebrow">BỘ BÀI TRÊN TAY</span><h2>Chọn kỹ năng</h2></div><div class="pile-info"><span>BỘ BÀI <b>'+game.draw.length+'</b></span><span>BÀI BỎ <b>'+game.discard.length+'</b></span></div></div>'+
     '<div class="hand-scroll">'+game.hand.map(c=>cardView(c)).join('')+'</div><p class="mobile-hint">Vuốt ngang để xem hết bài. Nhấn một lá bài để thêm hoặc bỏ khỏi chuỗi.</p></section></section>'+
     '<aside class="sidebar">'+statsBlock()+'<div class="sidebar-footer"><button class="ghost-btn" data-action="log">Xem toàn bộ nhật ký</button><button class="ghost-btn" data-action="restart">Chơi lại</button></div></aside></div>'+
-    '<footer class="footer">THẺ GIỚI: HỖN MANG · V0.5 · TỰ ĐỘNG LƯU TRÊN TRÌNH DUYỆT</footer>'+
+    '<footer class="footer">THẺ GIỚI: HỖN MANG · V0.6 · TỰ ĐỘNG LƯU TRÊN TRÌNH DUYỆT</footer>'+
     '</div>'+overlay();
   persist();
   const scroll=app.querySelector(".hand-scroll");if(scroll)scroll.scrollLeft=oldScroll;
@@ -195,7 +203,7 @@ function overlay(){
      CARDS[id].kind===collectionFilter||CARDS[id].school===collectionFilter||CARDS[id].rarity===collectionFilter);
    return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal collection">'+
      '<button class="modal-close" data-action="close">×</button><span class="eyebrow">'+CARD_POOL.length+
-     ' KỸ NĂNG</span><h2>Thư viện thẻ V0.5</h2>'+
+     ' KỸ NĂNG</span><h2>Thư viện thẻ V0.6</h2>'+
      '<p class="muted">70 thẻ: 50 kỹ năng thường, 8 Thần Kỹ, 5 Thần Bí Kỹ và 7 biến thể Tiến Hóa. Thần Kỹ xuất hiện tại Thần Đàn sau trận Tinh Anh.</p>'+
      '<div class="library-filters">'+CARD_FILTERS.map(f=>'<button class="'+(collectionFilter===f.value?'active':'')+
        '" data-filter="'+f.value+'">'+f.label+'</button>').join('')+'</div>'+
@@ -246,7 +254,7 @@ async function run(){
     const event=game.lastEvent;
     if(event?.kind==="enemy") {const hero=app.querySelector(".player .actor-wrap");if(hero){hero.classList.add("hurt");setTimeout(()=>hero.classList.remove("hurt"),440);}}
   }
-  if(game.phase==="won")saveWin();
+  // Campaign victories are recorded once by syncProfile in render().
   busy=false;render();
 }
 app.addEventListener("click",event=>{
