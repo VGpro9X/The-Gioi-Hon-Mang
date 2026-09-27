@@ -77,7 +77,7 @@ test("campaign moves across all eighteen floors, preserves cards and ends only o
  assert.deepEqual(fresh,["first_boss"]);assert.equal(profile.runs,0);
  assert.ok(chooseActBoon(g,"riches"));assert.equal(g.act,2);
  progress(g);assert.equal(g.phase,"act-clear");assert.equal(g.act,2);
- fresh=recordProfile(profile,g);assert.deepEqual(fresh,["void_breaker"]);
+ fresh=recordProfile(profile,g);assert.ok(fresh.includes("void_breaker"));
  assert.ok(chooseActBoon(g,"vitality"));assert.equal(g.act,3);
  progress(g,"won");
  assert.equal(g.phase,"won");assert.equal(g.bossesDefeated,3);
@@ -124,6 +124,26 @@ test("profile records a lost attempt exactly once and saves progress independent
  recordProfile(p,g);recordProfile(p,g);
  assert.equal(p.runs,1);assert.equal(p.wins,0);
  assert.equal(g.profileRecorded,true);assert.equal(p.bestRealm,0);
+});
+test("all eight achievements evaluate from actual run stats, without duplicate unlocks",()=>{
+ const g=createGame();
+ const cards=[...g.draw,...g.discard,...g.hand];for(const c of cards.slice(0,3))c.level=1;
+ cards[3].id="god_thunder";
+ g.relics=["thunderseal","embercore","toxincore"];
+ g.bossesDefeated=3;g.act=3;g.phase="won";g.stage=6;g.gold=200;g.hp=70;g.stats.turns=28;
+ const eligible=eligibleAchievements(g);
+ assert.deepEqual(new Set(eligible),new Set(Object.keys(ACHIEVEMENTS)));
+ const p=newProfile();assert.equal(recordProfile(p,g).length,8);
+ assert.equal(p.runs,1);assert.equal(p.wins,1);
+ assert.equal(recordProfile(p,g).length,0);assert.equal(p.runs,1);
+ assert.deepEqual(profileBonuses(p),{maxHp:8,bonusUncommon:true});
+});
+test("Void and Chaos intentions represent different threat patterns in late regions",()=>{
+ const game=createGame();assert.ok(chooseNode(game,availableNodes(game)[1].id));
+ game.enemy=enemyTemplate(3,"battle",2);game.turn=5;
+ const drain=getIntent(game);assert.equal(drain.kind,"drain");assert.match(drain.hint,/hút 4 Máu/);
+ game.enemy=enemyTemplate(3,"battle",3);game.turn=4;
+ const rupture=getIntent(game);assert.equal(rupture.kind,"rupture");assert.match(rupture.hint,/30% Khiên/);
 });
 test("invalid next-realm progress and impossible act rewards cannot be restored",()=>{
  const g=progress(createGame());assert.equal(g.phase,"act-clear");
