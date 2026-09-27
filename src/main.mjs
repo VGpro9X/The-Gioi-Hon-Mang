@@ -245,7 +245,17 @@ function overlay(){
  }
  if(showLog)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">CHIẾN BÁO</span><h2>Nhật ký chiến đấu</h2><div class="full-log">'+game.log.map(s=>'<p>'+s+'</p>').join('')+'</div></section></div>';
  if(game.phase==="reward")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal reward"><span class="eyebrow">CHÚC MỪNG CHIẾN THẮNG</span><h2>Chọn một kỹ năng</h2><p>Hồi một ít Máu sau khi chọn một thẻ thưởng.'+(game.ascensionPending?' Thần Đàn thức tỉnh sẽ mở ngay sau bước này.':' Trở về bản đồ để chọn nhánh tiếp theo.')+'</p>'+(game.lastRelic&&RELICS[game.lastRelic]?'<div class="relic-win">✦ DI VẬT TINH ANH: '+RELICS[game.lastRelic].name+' · '+RELICS[game.lastRelic].desc+'</div>':'')+'<div class="reward-grid">'+game.reward.map(choiceCard).join('')+'</div></section></div>';
- if(game.phase==="won"||game.phase==="lost")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal finish">'+icon(game.phase==="won"?"star":"shield","end-icon")+'<span class="eyebrow">'+(game.phase==="won"?"HÀNH TRÌNH HOÀN THÀNH":"HÀNH TRÌNH KẾT THÚC")+'</span><h2>'+(game.phase==="won"?"Tinh giới đã được giải phóng":"Hẹn gặp lại tại Tinh Giới")+'</h2><p>'+(game.phase==="won"?"Bạn đã vượt 6 tầng và đánh bại Thủ Vệ Tinh Giới.":"Bạn đã đi tới ải "+game.stage+". Hãy thử một bộ bài và chuỗi kỹ năng mới.")+'</p><div class="finish-stats"><span>ẢI <b>'+game.stage+' / 6</b></span><span>LƯỢT <b>'+game.stats.turns+'</b></span><span>SÁT THƯƠNG <b>'+game.stats.damage+'</b></span><span>THẺ ĐÃ DÙNG <b>'+game.stats.played+'</b></span></div><button class="play-button" data-action="restart">BẮT ĐẦU LƯỢT MỚI →</button></section></div>';
+ if(game.phase==="won"||game.phase==="lost")return '<div class="modal-wrap"><div class="modal-backdrop lock"></div><section class="modal finish">'+
+  icon(game.phase==="won"?"star":"shield","end-icon")+
+  '<span class="eyebrow">'+(game.phase==="won"?"HÀNH TRÌNH TAM GIỚI HOÀN THÀNH":"HÀNH TRÌNH KẾT THÚC")+'</span>'+
+  '<h2>'+(game.phase==="won"?"Tam Giới đã được giải phóng":"Hẹn gặp lại tại Tinh Giới")+'</h2>'+
+  '<p>'+(game.phase==="won"?"Bạn đã chinh phục đủ 3 khu vực và đánh bại Hỗn Mang Thần Long. Thành tích mới được lưu vào hồ sơ.":
+  "Bạn dừng bước tại "+realm().name+", tầng "+game.stage+". Thành tích đã đạt vẫn được giữ lại cho lượt chơi sau.")+'</p>'+
+  '<div class="finish-stats"><span>KHU <b>'+game.act+'/3</b></span><span>TẦNG <b>'+
+  ((game.act-1)*6+game.stage)+'/18</b></span><span>LƯỢT <b>'+game.stats.turns+'</b></span>'+
+  '<span>SÁT THƯƠNG <b>'+game.stats.damage+'</b></span><span>THẺ ĐÃ DÙNG <b>'+game.stats.played+'</b></span></div>'+
+  '<button class="ghost-btn" data-action="achievements">XEM THÀNH TÍCH</button>'+
+  '<button class="play-button" data-action="restart">BẮT ĐẦU LƯỢT MỚI →</button></section></div>';
  return '';
 }
 function fx(card){
