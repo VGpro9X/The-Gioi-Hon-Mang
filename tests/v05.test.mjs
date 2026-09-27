@@ -139,7 +139,7 @@ test("V0.4 elite reward migrates into Ascension without wiping the existing deck
   g.divineOffers=undefined;g.ascensionPending=undefined;g.divineEffects=undefined;g.version="0.4.0";
   const oldGold=g.gold,oldRoute=[...g.route];
   const loaded=restoreGame(serializeGame(g));
-  assert.ok(loaded);assert.equal(loaded.version,"0.5.0");
+  assert.ok(loaded);assert.equal(loaded.version,"0.6.0");
   assert.equal(loaded.ascensionPending,true);assert.equal(loaded.divineOffers.length,3);
   assert.deepEqual(loaded.route,oldRoute);assert.equal(loaded.gold,oldGold);
   assert.ok(chooseReward(loaded,"spark"));assert.equal(loaded.phase,"ascend");
