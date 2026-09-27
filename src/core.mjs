@@ -419,7 +419,7 @@ export function chooseActBoon(g,id){
  g.act++;
  g.route=[];g.stage=0;g.position=1;g.map=generateMap();
  g.currentNode=null;g.shopStock=[];g.shopRelic=null;g.eventId=null;g.reward=[];
- g.hand=[];g.selected=[];g.block=0;g.power=0;g.energy=g.maxEnergy;
+ g.discard.push(...g.hand);g.hand=[];g.selected=[];g.block=0;g.power=0;g.energy=g.maxEnergy;
  g.phase="map";
  msg(g,"Chúc phúc "+ACT_BOONS[id].name+". Tiến vào "+REALMS[g.act-1].name+"!");
  return true;
@@ -585,7 +585,7 @@ export const serializeGame=g=>JSON.stringify(g);
 export function restoreGame(raw){
  try{
   const g=typeof raw==="string"?JSON.parse(raw):raw;
-  if(!g||!["0.2.0","0.3.0","0.4.0","0.5.0"].includes(g.version)||!["map","planning","reward","shop","rest","upgrade","ascend","event","won","lost"].includes(g.phase))return null;
+  if(!g||!["0.2.0","0.3.0","0.4.0","0.5.0","0.6.0"].includes(g.version)||!["map","planning","reward","shop","rest","upgrade","ascend","act-clear","event","won","lost"].includes(g.phase))return null;
   if(!mapIsValid(g.map)||!Array.isArray(g.route)||g.route.length>6||
    !g.route.every((id,i)=>typeof id==="string"&&g.map.some(n=>n.id===id&&n.row===i)))return null;
   if(!Number.isInteger(g.stage)||g.stage!==g.route.length||g.stage<0||g.stage>6)return null;
@@ -605,7 +605,7 @@ export function restoreGame(raw){
    !g.stats||!["damage","played","turns"].every(key=>Number.isFinite(g.stats[key])))return null;
   if(g.phase==="event"&&!EVENTS[g.eventId])return null;
   if(g.stage>0&&(!g.currentNode||!g.map.some(n=>n.id===g.currentNode.id)))return null;
-  if(["planning","reward","lost","won"].includes(g.phase)&&(!g.enemy||!Number.isFinite(g.enemy.hp)||g.enemy.hp<0))return null;
+  if(["planning","reward","lost","won","act-clear"].includes(g.phase)&&(!g.enemy||!Number.isFinite(g.enemy.hp)||g.enemy.hp<0))return null;
   if(g.relics!==undefined&&(!Array.isArray(g.relics)||g.relics.length>6||
      !g.relics.every(id=>RELICS[id])||new Set(g.relics).size!==g.relics.length))return null;
   if(g.shopRelic!==undefined&&g.shopRelic!==null&&!RELICS[g.shopRelic])return null;
@@ -633,11 +633,39 @@ export function restoreGame(raw){
      !g.divineOffers.every(id=>[...GOD_IDS,...MYSTERY_IDS].includes(id))||
      new Set(g.divineOffers).size!==g.divineOffers.length||
      typeof g.ascensionPending!=="boolean"||
-     !Number.isInteger(g.ascensionsTaken)||g.ascensionsTaken<0||g.ascensionsTaken>2||
+     !Number.isInteger(g.ascensionsTaken)||g.ascensionsTaken<0||g.ascensionsTaken>6||
      !Number.isInteger(g.divineEffects.thunderTurns)||g.divineEffects.thunderTurns<0||g.divineEffects.thunderTurns>2||
      typeof g.divineEffects.reviveReady!=="boolean"||typeof g.divineEffects.reviveUsed!=="boolean"||
      (g.phase==="ascend"&&(!g.ascensionPending||g.divineOffers.length!==3)))return null;
-  g.version="0.5.0";
+  // Migration of V0.2–V0.5 saves: even a V0.5 finished run may
+  // continue into realms II and III without losing its deck or relics.
+  const legacy=g.version!=="0.6.0";
+  if(g.act===undefined)g.act=1;
+  if(g.totalActs===undefined)g.totalActs=REALMS.length;
+  if(g.bossesDefeated===undefined)g.bossesDefeated=legacy&&g.phase==="won"?1:0;
+  if(g.actHistory===undefined)g.actHistory=[];
+  if(g.actBoons===undefined)g.actBoons=[];
+  if(g.actReward===undefined)g.actReward=legacy&&g.phase==="won"?Object.keys(ACT_BOONS):[];
+  if(g.profileRecorded===undefined)g.profileRecorded=false;
+  if(legacy&&g.phase==="won"&&g.act===1){
+    g.phase="act-clear";g.actReward=Object.keys(ACT_BOONS);
+    msg(g,"Bạn đã hoàn thành V0.5. Chọn Phúc Lành để tiếp tục hành trình Tam Giới V0.6.");
+  }
+  if(!Number.isInteger(g.act)||g.act<1||g.act>3||g.totalActs!==3||
+     !Number.isInteger(g.bossesDefeated)||g.bossesDefeated<0||g.bossesDefeated>3||
+     g.bossesDefeated!==g.act-1+(["act-clear","won"].includes(g.phase)?1:0)||
+     !Array.isArray(g.actHistory)||g.actHistory.length!==g.act-1||
+     !g.actHistory.every((h,i)=>h?.act===i+1&&Array.isArray(h.route)&&h.route.length===6&&
+       h.route.every(x=>typeof x==="string"&&/^[0-5]-[0-2]$/.test(x)))||
+     !Array.isArray(g.actBoons)||g.actBoons.length!==g.actHistory.length||
+     !g.actBoons.every(id=>ACT_BOONS[id])||
+     !Array.isArray(g.actReward)||
+     (g.phase==="act-clear"?(g.act>=3||g.stage!==6||g.actReward.length!==3||
+       !Object.keys(ACT_BOONS).every(id=>g.actReward.includes(id))):g.actReward.length!==0)||
+     (g.phase==="won"&&(g.act!==3||g.stage!==6))||
+     typeof g.profileRecorded!=="boolean")return null;
+  g.enemy.act=g.enemy.act||g.act;
+  g.version="0.6.0";
   nextUid=Math.max(nextUid,...all.map(c=>c.uid+1));return g;
  }catch{return null;}
 }
