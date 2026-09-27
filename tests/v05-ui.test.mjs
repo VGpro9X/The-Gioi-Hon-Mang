@@ -5,7 +5,7 @@ import {createGame,serializeGame,restoreGame} from "../src/core.mjs";
 test("Divine altar renders all three offers and transforms a real card after a click",async()=>{
   const game=createGame();game.phase="ascend";game.divineOffers=["god_thunder","god_frost","mystery_void"];
   game.ascensionPending=true;
-  const storage=new Map([["tghm-v05-save",serializeGame(game)]]),handlers={};
+  const storage=new Map([["tghm-v06-save",serializeGame(game)]]),handlers={};
   globalThis.localStorage={getItem:key=>storage.get(key)||null,setItem:(key,val)=>storage.set(key,val)};
   globalThis.window={addEventListener:()=>{},confirm:()=>true};
   const app={innerHTML:"",querySelector:()=>null,addEventListener:(key,handler)=>handlers[key]=handler};
@@ -19,7 +19,7 @@ test("Divine altar renders all three offers and transforms a real card after a c
   const button={getAttribute:name=>name==="data-evolve"?match[1]:null,dataset:{}};
   handlers.click({target:{closest:()=>button}});
   assert.match(app.innerHTML,/route-map/);
-  const saved=restoreGame(storage.get("tghm-v05-save"));
+  const saved=restoreGame(storage.get("tghm-v06-save"));
   assert.ok(saved);
   assert.equal(saved.phase,"map");assert.equal(saved.ascensionsTaken,1);
   assert.ok([...saved.draw,...saved.hand,...saved.discard].some(c=>c.id.startsWith("evo_")));
