@@ -65,7 +65,8 @@ function statsBlock(){
  const active=Object.entries(passive).filter(([id,n])=>CARDS[id]&&n>0);
  const armed=Object.entries(reactions).filter(([id,n])=>CARDS[id]&&n>0);
  const badges=entries=>entries.map(([id,n])=>status(CARDS[id].name,n,"power")).join("");
- return '<div class="side-title">TRẠNG THÁI ĐỐI THỦ</div><div class="status-row">'+
+ return '<div class="side-title">HÀNH TRÌNH TAM GIỚI</div><div class="realm-side"><strong>'+realm().name+'</strong><small>Khu vực '+game.act+'/3 · Tầng '+game.stage+'/6</small></div>'+ 
+ '<div class="side-title">TRẠNG THÁI ĐỐI THỦ</div><div class="status-row">'+
   (status("Thiêu Đốt",e.burn,"fire")+status("Lôi Ấn",e.mark,"electric")+status("Băng Giá",e.frost,"ice")+
   status("Xuất Huyết",e.bleed,"blood")+status("Độc",e.poison,"poison")+status("Khiên",e.shield,"plain")||
    '<span class="muted">Chưa có hiệu ứng</span>')+'</div>'+
@@ -88,12 +89,23 @@ function statsBlock(){
 function journeyScreen(){
  const header='<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.6</i></small></div></div>'+
  '<div class="top-meta"><span class="meta-pill">MÁU <b>'+game.hp+'/'+game.maxHp+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span></div>'+
- '<div class="top-actions"><button class="text-btn" data-action="collection">Bộ thẻ</button><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button></div></header>';
- const title=game.phase==="map"?"Chọn nhánh tiếp theo":game.phase==="shop"?"Thương nhân tinh giới":game.phase==="rest"?"Điểm nghỉ giữa các vì sao":game.phase==="upgrade"?"Rèn luyện thẻ bài":game.phase==="ascend"?"Thần Đàn Thức Tỉnh":"Sự kiện bí ẩn";
+ '<div class="top-actions"><button class="text-btn" data-action="achievements">Thành tích</button><button class="text-btn" data-action="collection">Bộ thẻ</button><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button></div></header>';
+ const title=game.phase==="map"?"Chọn nhánh tiếp theo":game.phase==="shop"?"Thương nhân tinh giới":game.phase==="rest"?"Điểm nghỉ giữa các vì sao":game.phase==="upgrade"?"Rèn luyện thẻ bài":game.phase==="ascend"?"Thần Đàn Thức Tỉnh":game.phase==="act-clear"?"Phúc Lành Vượt Giới":"Sự kiện bí ẩn";
  let body="";
- if(game.phase==="map"){
+ if(game.phase==="act-clear"){
+   body='<section class="realm-cleared"><span class="realm-cleared-sigil">✦</span>'+
+     '<span class="eyebrow">KHU VỰC '+game.act+'/3 HOÀN THÀNH</span><h2>'+REALMS[game.act-1].name+'</h2>'+
+     '<p>Đã đánh bại '+REALMS[game.act-1].boss+'. Chọn một trong ba Phúc Lành để bước vào '+REALMS[game.act].name+'. Bộ bài và Di Vật được giữ nguyên.</p>'+
+     '<div class="realm-clear-stats"><span>Máu <b>'+game.hp+'/'+game.maxHp+'</b></span><span>Vàng <b>'+game.gold+'</b></span>'+
+     '<span>Di Vật <b>'+game.relics.length+'/6</b></span></div></section>'+
+     '<div class="boon-grid">'+game.actReward.map(id=>{const boon=ACT_BOONS[id];
+       return '<button class="boon-card" data-boon="'+id+'"><span class="boon-icon">'+icon(boon.icon)+'</span>'+
+         '<strong>'+boon.name+'</strong><small>'+boon.desc+'</small><b>NHẬN PHÚC LÀNH →</b></button>';
+     }).join('')+'</div>';
+ }else if(game.phase==="map"){
    const active=availableNodes(game).map(n=>n.id),past=game.route;
-   body='<p class="journey-hint">Đi từ dưới lên. Mỗi tầng chỉ có thể chọn điểm cùng cột hoặc cột kế bên vị trí vừa đi. Mỗi lượt chơi có sơ đồ khác nhau.</p><div class="route-map">'+
+   body='<div class="realm-map-intro"><span class="eyebrow">VÙNG '+game.act+' / '+game.totalActs+'</span><h2>'+realm().name+'</h2><p>'+realm().subtitle+'</p></div>'+
+   '<p class="journey-hint">Đi từ dưới lên. Mỗi tầng chỉ chọn điểm cùng cột hoặc cột liền kề. Bản đồ thay đổi ở mỗi khu vực.</p><div class="route-map">'+
    MAP_ROWS.map((_,i)=>MAP_ROWS.length-1-i).map(row=>'<div class="route-row"><span class="route-floor">TẦNG '+(row+1)+'</span><div class="route-nodes">'+
      [0,1,2].map(col=>{const n=game.map.find(x=>x.row===row&&x.col===col);
        if(!n)return '<span class="route-empty"></span>';
@@ -151,10 +163,10 @@ function journeyScreen(){
         (unavailable?'<small>Không đủ sinh lực để lựa chọn</small>':'')+'</button>';
      }).join('')+'</div>';
  }
- return '<div class="shell journey-shell">'+header+'<div class="journey-top"><div><span class="eyebrow">HÀNH TRÌNH TINH GIỚI</span><h1>'+title+'</h1><p class="muted">'+game.lastMessage+'</p></div>'+
+ return '<div class="shell journey-shell realm-'+realm().tone+'">'+header+'<div class="journey-top"><div><span class="eyebrow">HÀNH TRÌNH TINH GIỚI</span><h1>'+title+'</h1><p class="muted">'+game.lastMessage+'</p></div>'+
    '<button class="ghost-btn" data-action="restart">Chơi mới</button></div>'+
    '<div class="journey-relics"><span class="eyebrow">DI VẬT ĐANG SỞ HỮU</span>'+relicStrip()+'</div>'+body+
-   '<div class="journey-bottom"><span>✦ Tiến trình tự động lưu trên trình duyệt này.</span><span>Đã đi '+game.route.length+' / 6 tầng</span></div></div>'+
+   '<div class="journey-bottom"><span>✦ Tiến trình tự động lưu trên trình duyệt này.</span><span>Đã đi '+((game.act-1)*6+game.route.length)+' / 18 tầng</span></div></div>'+
    (showHelp||showCollection||showLog?overlay():'');
 }
 
