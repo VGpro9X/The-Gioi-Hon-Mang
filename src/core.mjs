@@ -1,4 +1,6 @@
-// Thẻ Giới: Hỗn Mang — V0.5. Divine Ascension and rare evolutions.
+// Thẻ Giới: Hỗn Mang — V0.6. Three-realm campaign, balanced scaling and achievements.
+import {REALMS,ACT_BOONS,profileBonuses} from './campaign.mjs';
+export {REALMS,ACT_BOONS} from './campaign.mjs';
 import {SPECIAL_CARDS,GOD_IDS,MYSTERY_IDS,EVOLUTIONS,EVOLVED_IDS,ascensionOffers,mysteryRate} from './divine.mjs';
 export {GOD_IDS,MYSTERY_IDS,EVOLUTIONS,EVOLVED_IDS,mysteryRate} from './divine.mjs';
 import {RELICS,hasRelic,relicOffer,availableRelics} from './relics.mjs';
@@ -69,17 +71,27 @@ function draw(g,n) {
     g.hand.push(g.draw.pop());
   }
 }
-const enemyTemplate=(stage,kind="battle")=>{
+export const enemyTemplate=(stage,kind="battle",act=1)=>{
+ const realm=REALMS[act-1]||REALMS[0];
  const base=kind==="boss"?ENEMIES[2]:kind==="elite"?ENEMIES[1]:ENEMIES[stage%2===0?1:0];
- const hp=base.hp+(stage-1)*7+(kind==="boss"?40:kind==="elite"?18:0);
- return {...clone(base),kind,name:kind==="elite"?"Tinh Anh: "+base.name:base.name,
-   hp,maxHp:hp,poison:0,attack:base.attack+Math.floor((stage-1)*1.5)+(kind==="elite"?2:0),
-   defend:base.defend+stage-1,shield:0,burn:0,bleed:0,frost:0,mark:0};
+ const raw=base.hp+(stage-1)*7+(kind==="boss"?40:kind==="elite"?18:0);
+ const hp=Math.round(raw*realm.hpScale);
+ const name=kind==="boss"?realm.boss:
+   kind==="elite"?"Tinh Anh: "+realm.elite:
+   act===1?base.name:realm.enemy;
+ return {...clone(base),kind,act,name,
+   subtitle:act===1?base.subtitle:realm.subtitle,
+   hp,maxHp:hp,poison:0,attack:base.attack+Math.floor((stage-1)*1.5)+(kind==="elite"?2:0)+realm.attackBonus,
+   defend:base.defend+stage-1+realm.defenseBonus,shield:0,burn:0,bleed:0,frost:0,mark:0};
 };
-export function createGame(){
+
+export function createGame(profile=null){
+ const perks=profileBonuses(profile);
  const additions=shuffled(BONUS_POOL).slice(0,2);
+ if(perks.bonusUncommon)additions.push(shuffled(REGULAR_POOL.filter(id=>CARDS[id].rarity==="uncommon"))[0]);
  const g={
-  version:"0.5.0",stage:0,totalStages:MAP_ROWS.length,turn:1,maxHp:90,hp:90,block:0,
+  version:"0.6.0",stage:0,act:1,totalActs:REALMS.length,totalStages:MAP_ROWS.length,turn:1,maxHp:90+perks.maxHp,hp:90+perks.maxHp,block:0,
+  bossesDefeated:0,actHistory:[],actBoons:[],actReward:[],profileRecorded:false,
   energy:3,maxEnergy:3,power:0,gold:35,route:[],position:1,map:generateMap(),
   summons:{wisp:0,golem:0},passives:{},reactions:{},lastOffensive:null,lastSwordTurn:0,extraPlanning:false,
   currentNode:null,shopStock:[],shopRelic:null,shopUpgradeUsed:false,eventId:null,phase:"map",enemy:enemyTemplate(1),
@@ -302,8 +314,15 @@ export function playCard(g,uid){
 }
 function wonFight(g){
  msg(g,"Chiến thắng "+g.enemy.name+"!");
- if(g.currentNode?.kind==="boss"){g.phase="won";g.reward=[];return;}
- const coins=g.currentNode?.kind==="elite"?43:24;
+ if(g.currentNode?.kind==="boss"){
+  g.bossesDefeated++;
+  g.reward=[];
+  if(g.act===REALMS.length){g.phase="won";msg(g,"Chiến thắng Tam Giới!");}
+  else {g.actReward=Object.keys(ACT_BOONS);g.phase="act-clear";
+   msg(g,"Đánh bại "+REALMS[g.act-1].boss+"! Chọn phúc lành trước khi bước vào "+REALMS[g.act].name+".");}
+  return;
+ }
+ const coins=(g.currentNode?.kind==="elite"?43:24)+(g.act-1)*8;
  g.gold+=coins;msg(g,"Nhận "+coins+" vàng chiến lợi phẩm.");
  g.lastRelic=null;
  if(g.currentNode?.kind==="elite"){
@@ -379,7 +398,7 @@ export function finishTurn(g){
 export function chooseReward(g,id){
  if(g.phase!=="reward"||!g.reward.includes(id))return false;
  g.discard.push(makeCard(id));
- const recovery=g.currentNode?.kind==="elite"?9:6;
+ const recovery=(g.currentNode?.kind==="elite"?9:6)+(g.act-1)*2;
  g.hp=Math.min(g.maxHp,g.hp+recovery);
  g.reward=[];g.lastRelic=null;g.phase=g.ascensionPending?"ascend":"map";
  msg(g,"Nhận "+CARDS[id].name+", hồi "+recovery+" Máu."+(g.phase==="ascend"?" Thần Đàn đã mở.":" Chọn nhánh tiếp theo."));
@@ -394,7 +413,7 @@ export function evolutionCandidates(g){
 }
 function closeAscension(g,what){
  g.ascensionPending=false;g.divineOffers=[];g.phase="map";
- g.ascensionsTaken=Math.min(2,g.ascensionsTaken+1);
+ g.ascensionsTaken=Math.min(6,g.ascensionsTaken+1);
  msg(g,what+" Chọn nhánh tiếp theo.");
 }
 export function chooseDivine(g,id){
@@ -429,7 +448,7 @@ export function chooseNode(g,id){
  g.currentNode={...node};g.eventId=null;g.shopStock=[];
  g.selected=[];g.block=0;g.power=0;
  if(["battle","elite","boss"].includes(node.kind)){
-   g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind);
+   g.turn=1;g.enemy=enemyTemplate(g.stage,node.kind,g.act);
    g.divineEffects={thunderTurns:0,reviveReady:false,reviveUsed:false};
    if(hasRelic(g,"starward"))g.block+=10;
    g.summons={wisp:0,golem:0};g.passives={};g.reactions={};g.lastOffensive=null;g.lastSwordTurn=0;g.extraPlanning=false;
