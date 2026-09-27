@@ -26,6 +26,7 @@ jobs:
       - name: Test combat engine
         run: |
           node --check src/core.mjs
+          node --check src/campaign.mjs
           node --check src/divine.mjs
           node --check src/expansion.mjs
           node --check src/effects.mjs
