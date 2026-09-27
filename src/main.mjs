@@ -167,7 +167,7 @@ function journeyScreen(){
    '<button class="ghost-btn" data-action="restart">Chơi mới</button></div>'+
    '<div class="journey-relics"><span class="eyebrow">DI VẬT ĐANG SỞ HỮU</span>'+relicStrip()+'</div>'+body+
    '<div class="journey-bottom"><span>✦ Tiến trình tự động lưu trên trình duyệt này.</span><span>Đã đi '+((game.act-1)*6+game.route.length)+' / 18 tầng</span></div></div>'+
-   (showHelp||showCollection||showLog?overlay():'');
+   (showHelp||showCollection||showLog||showAchievements?overlay():'');
 }
 
 function render(){
@@ -175,13 +175,13 @@ function render(){
   if(["map","shop","rest","upgrade","ascend","act-clear","event"].includes(game.phase)){app.innerHTML=journeyScreen();persist();return;}
   const oldScroll=app.querySelector(".hand-scroll")?.scrollLeft||0;
   const e=game.enemy,intent=getIntent(game),cost=queuedCost(game),queue=game.selected.map(uid=>game.hand.find(x=>x.uid===uid)).filter(Boolean);
-  app.innerHTML='<div class="shell">'+
+  app.innerHTML='<div class="shell realm-'+realm().tone+'">'+
     '<header class="topbar"><div class="brand"><span class="brand-mark">✧</span><div><b>THẺ GIỚI</b><small>HỖN MANG <i>V0.6</i></small></div></div>'+
-    '<div class="top-meta"><span class="meta-pill">ẢI <b>'+game.stage+' / '+game.totalStages+'</b></span><span class="meta-pill">LƯỢT <b>'+game.turn+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span><span class="meta-pill desktop-only">HOÀN THÀNH <b>'+getWins()+'</b></span></div>'+
-    '<div class="top-actions"><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button><button class="text-btn" data-action="collection">Bộ thẻ</button></div></header>'+
+    '<div class="top-meta"><span class="meta-pill">KHU <b>'+game.act+' / 3</b></span><span class="meta-pill">ẢI <b>'+((game.act-1)*6+game.stage)+' / 18</b></span><span class="meta-pill">LƯỢT <b>'+game.turn+'</b></span><span class="meta-pill">VÀNG <b>'+game.gold+'</b></span><span class="meta-pill desktop-only">HOÀN THÀNH <b>'+getWins()+'</b></span></div>'+
+    '<div class="top-actions"><button class="icon-btn" data-action="help" aria-label="Hướng dẫn">?</button><button class="text-btn" data-action="achievements">Thành tích</button><button class="text-btn" data-action="collection">Bộ thẻ</button></div></header>'+
     '<div class="game-layout"><section class="main-column"><div class="arena">'+
-    '<div class="arena-heading"><span class="arena-kicker">✦ VỰC SAO HỖN MANG ✦</span><span class="arena-message">'+game.lastMessage+'</span></div>'+
-    (e.kind==='boss'&&e.hp<=e.maxHp/2?'<div class="phase-warning">⚠ THỦ VỆ CHUYỂN PHA · TINH VÂN CUỒNG NỘ</div>':'')+
+    '<div class="arena-heading"><span class="arena-kicker">✦ '+realm().name.toUpperCase()+' ✦</span><span class="arena-message">'+game.lastMessage+'</span></div>'+
+    (e.kind==='boss'&&e.hp<=e.maxHp/2?'<div class="phase-warning">⚠ BOSS CHUYỂN PHA · NĂNG LƯỢNG CUỒNG NỘ</div>':'')+
     '<div class="fighters"><div class="fighter player"><div class="fighter-label">LỮ KHÁCH TINH GIỚI</div><div class="actor-wrap"><div class="actor-glow"></div>'+heroArt+'</div>'+
     '<div class="bar-label"><b>SINH MỆNH</b><strong>'+safe(game.hp)+' / '+game.maxHp+'</strong></div><div class="healthbar"><i style="width:'+ratio(game.hp,game.maxHp)+'%"></i></div>'+
     '<div class="minor-stat">KHIÊN <b>'+game.block+'</b> · KIẾM Ý <b>'+game.power+'</b></div></div>'+
@@ -276,6 +276,7 @@ app.addEventListener("click",event=>{
   if(uid!==null){const id=Number(uid);if(game.selected.includes(id))unqueueCard(game,id);else queueCard(game,id);render();return;}
   const unqueue=b.getAttribute("data-unqueue");if(unqueue!==null){unqueueCard(game,Number(unqueue));render();return;}
   const filter=b.getAttribute("data-filter");if(filter!==null){if(CARD_FILTERS.some(f=>f.value===filter)){collectionFilter=filter;render();}return;}
+  const boon=b.getAttribute("data-boon");if(boon!==null){if(chooseActBoon(game,boon))render();return;}
   const divine=b.getAttribute("data-divine");if(divine!==null){if(chooseDivine(game,divine))render();return;}
   const evolve=b.getAttribute("data-evolve");if(evolve!==null){if(evolveAtAscension(game,Number(evolve)))render();return;}
   const relic=b.getAttribute("data-buy-relic");if(relic!==null){if(buyRelic(game,relic))render();return;}
@@ -294,9 +295,10 @@ app.addEventListener("click",event=>{
     case "cancel-upgrade":if(cancelUpgrade(game))render();break;
     case "leave-shop":if(leaveShop(game))render();break;
     case "help":showHelp=true;render();break;
+    case "achievements":showAchievements=true;render();break;
     case "collection":collectionFilter="all";showCollection=true;render();break;
     case "log":showLog=true;render();break;
-    case "close":showHelp=false;showCollection=false;showLog=false;render();break;
+    case "close":showHelp=false;showCollection=false;showLog=false;showAchievements=false;render();break;
   }
 });
 window.addEventListener("keydown",event=>{if(event.key==="Escape"&&(showHelp||showCollection||showLog)){showHelp=false;showCollection=false;showLog=false;render();}});
