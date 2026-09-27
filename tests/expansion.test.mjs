@@ -122,7 +122,7 @@ test("V0.2 save is migrated without losing map, cards, route, gold or battle sta
  delete legacy.enemy.poison;delete legacy.summons;delete legacy.passives;delete legacy.reactions;
  delete legacy.lastOffensive;delete legacy.lastSwordTurn;
  const saved=restoreGame(JSON.stringify(legacy));
- assert.ok(saved);assert.equal(saved.version,"0.5.0");assert.equal(saved.gold,76);
+ assert.ok(saved);assert.equal(saved.version,"0.6.0");assert.equal(saved.gold,76);
  assert.equal(saved.enemy.burn,3);assert.equal(saved.enemy.poison,0);
  assert.deepEqual(saved.route,route);assert.equal(saved.phase,"planning");
  assert.equal(saved.draw.length+saved.discard.length+saved.hand.length,14);
