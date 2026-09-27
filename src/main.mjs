@@ -209,7 +209,26 @@ function choiceCard(id){
   return '<button class="reward-card rarity-'+d.rarity+' skill-'+d.icon+'" data-reward="'+id+'"><div class="reward-art">'+icon(d.icon)+'</div><span>'+d.school+' · '+d.rarity+' · '+rarityLabel(d)+'</span><h3>'+d.name+'</h3><p>'+d.desc+'</p><strong>NHẬN THẺ →</strong></button>';
 }
 function overlay(){
- if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Có thể rèn thẻ +1 ở Điểm Nghỉ hoặc cửa hàng, thu thập 6 Di Vật và chống Xuyên Giáp của Tinh Anh hoặc Boss cuồng nộ. Sau khi thắng Tinh Anh, Thần Đàn cho phép nhận Thần Kỹ/Thần Bí Kỹ hoặc tiến hóa một thẻ hiện có. Tỉ lệ xuất hiện Thần Bí Kỹ tăng từ 15% ở tầng 3 lên 35% ở tầng 5. Bản lưu V0.2–V0.4 vẫn được hỗ trợ.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
+ if(showAchievements){
+   const earned=new Set(profile.unlocked),perks=profileBonuses(profile);
+   return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div>'+
+    '<section class="modal collection achievements-modal"><button class="modal-close" data-action="close">×</button>'+
+    '<span class="eyebrow">HỒ SƠ TINH GIỚI · LƯU TRÊN THIẾT BỊ</span><h2>Thành tích & Mở khóa</h2>'+
+    '<div class="achievement-summary"><span>Lượt chơi <b>'+profile.runs+'</b></span><span>Chiến thắng Tam Giới <b>'+profile.wins+'</b></span>'+
+    '<span>Khu vực xa nhất <b>'+profile.bestRealm+'/3</b></span><span>Thành tích <b>'+earned.size+'/8</b></span></div>'+
+    '<div class="achievement-perks"><strong>MỞ KHÓA CHO LƯỢT CHƠI TIẾP THEO</strong><p>'+
+    (perks.maxHp?'+8 Máu tối đa':'Đánh bại Boss khu vực I để nhận +8 Máu tối đa')+
+    ' · '+(perks.bonusUncommon?'Nhận thêm một thẻ Uncommon':'Hoàn thành Tam Giới để nhận thêm thẻ Uncommon')+'</p></div>'+
+    '<div class="achievement-grid">'+Object.entries(ACHIEVEMENTS).map(([id,a])=>{
+       const done=earned.has(id);
+       return '<div class="achievement-tile'+(done?' earned':' locked')+'">'+
+        '<span class="achievement-mark">'+(done?'✦':'◇')+'</span><div><strong>'+a.name+'</strong>'+
+        '<small>'+a.desc+'</small><p>'+a.unlock+'</p></div><span class="achievement-state">'+
+        (done?'ĐÃ MỞ':'CHƯA ĐẠT')+'</span></div>';
+    }).join('')+'</div><button class="play-button" data-action="close">ĐÓNG</button></section></div>';
+ }
+
+ if(showHelp)return '<div class="modal-wrap"><div class="modal-backdrop" data-action="close"></div><section class="modal help"><button class="modal-close" data-action="close">×</button><span class="eyebrow">HƯỚNG DẪN</span><h2>Ghép thẻ, tạo chuỗi, giải phóng kỹ năng</h2><p>Chọn các lá bài từ trái sang phải trong giới hạn 3 Năng Lượng. Nhấn <b>Thi Triển</b> để nhân vật tự sử dụng từng chiêu và kẻ địch hành động cuối lượt.</p><p><b>Kết hợp:</b> Lôi Kiếm đặt Lôi Ấn để Lôi Bạo khuếch đại sát thương. Băng Trảm đặt Băng Giá để Băng Toái kích nổ. Hỏa Cầu kết hợp Bộc Viêm; Huyết Nhận kết hợp Huyết Tế.</p><p><b>Hệ mới:</b> Độc gây sát thương cuối lượt; Linh Hồn tấn công và Thạch Vệ che chắn mỗi lượt. Thiên Phú tồn tại trong trận (tối đa 2 tầng); Phản Ứng kích hoạt một lần khi địch tấn công, không tiêu hao nếu địch dựng Khiên. Gia Tốc, Hồi Tố và Thời Bộ có thể cho phép chọn thêm bài trong cùng lượt sau chuỗi đầu tiên.</p><p><b>Hành trình:</b> Bản đồ 6 tầng, cửa hàng, sự kiện, Boss. Có thể rèn thẻ +1 ở Điểm Nghỉ hoặc cửa hàng, thu thập 6 Di Vật và chống Xuyên Giáp của Tinh Anh hoặc Boss cuồng nộ. Sau khi thắng Tinh Anh, Thần Đàn cho phép nhận Thần Kỹ/Thần Bí Kỹ hoặc tiến hóa một thẻ hiện có. Tỉ lệ xuất hiện Thần Bí Kỹ tăng từ 15% ở tầng 3 lên 35% ở tầng 5. V0.6 có 3 khu vực gồm Tinh Vân Khởi Nguyên, Vực Sâu Hư Không và Long Mạch Hỗn Mang (18 tầng). Sau hai Boss đầu tiên, chọn một Phúc Lành để qua vùng mới. Thành tích và phần thưởng mở khóa được lưu trên trình duyệt. Bản lưu V0.2–V0.5 vẫn được hỗ trợ.</p><button class="play-button" data-action="close">ĐÃ HIỂU →</button></section></div>';
  if(showCollection){
    const filtered=CARD_POOL.filter(id=>collectionFilter==="all"||
      CARDS[id].kind===collectionFilter||CARDS[id].school===collectionFilter||CARDS[id].rarity===collectionFilter);
