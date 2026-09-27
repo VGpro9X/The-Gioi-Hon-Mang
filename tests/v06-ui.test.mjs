@@ -1,0 +1,44 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import {REALMS,ACT_BOONS,newProfile} from "../src/campaign.mjs";
+import {createGame,restoreGame,serializeGame} from "../src/core.mjs";
+
+test("V0.6 GUI advances from realm I blessing to realm II and shows permanent achievements",async()=>{
+ const game=createGame();
+ game.route=Array.from({length:6},(_,row)=>row+"-1");
+ game.stage=6;game.currentNode={...game.map.find(n=>n.id==="5-1")};
+ game.enemy.kind="boss";game.enemy.hp=0;game.phase="act-clear";
+ game.bossesDefeated=1;game.actReward=Object.keys(ACT_BOONS);
+ const storage=new Map([["tghm-v06-save",serializeGame(game)]]),handlers={};
+ globalThis.localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)};
+ globalThis.window={addEventListener:()=>{},confirm:()=>true};
+ const app={innerHTML:"",querySelector:()=>null,addEventListener:(k,fn)=>{handlers[k]=fn;}};
+ globalThis.document={querySelector:()=>app};
+ await import("../src/main.mjs");
+ assert.match(app.innerHTML,/Phúc Lành Vượt Giới/);
+ assert.match(app.innerHTML,/data-boon="vitality"/);
+ assert.match(app.innerHTML,/data-boon="blessing"/);
+ const profile=JSON.parse(storage.get("tghm-v06-profile"));
+ assert.ok(profile.unlocked.includes("first_boss"));
+ const click=attributes=>{
+  const b={getAttribute:key=>attributes[key]??null,dataset:{action:attributes["data-action"]}};
+  handlers.click({target:{closest:()=>b}});
+ };
+ click({"data-boon":"vitality"});
+ assert.match(app.innerHTML,/Vực Sâu Hư Không/);
+ assert.match(app.innerHTML,/Đã đi 6 \/ 18 tầng/);
+ let saved=restoreGame(storage.get("tghm-v06-save"));
+ assert.ok(saved);assert.equal(saved.phase,"map");assert.equal(saved.act,2);
+ click({"data-action":"achievements"});
+ assert.match(app.innerHTML,/Thành tích & Mở khóa/);
+ assert.match(app.innerHTML,/Vượt Ngưỡng Tinh Vân/);
+ assert.match(app.innerHTML,/ĐÃ MỞ/);
+ click({"data-action":"close"});
+ assert.match(app.innerHTML,/route-map/);
+ const match=app.innerHTML.match(/class="route-node [^"]*is-available[^"]*" data-node="([^"]+)"/);
+ assert.ok(match);click({"data-node":match[1]});
+ assert.match(app.innerHTML,/realm-void/);
+ assert.match(app.innerHTML,/HÀNH TRÌNH TAM GIỚI/);
+ saved=restoreGame(storage.get("tghm-v06-save"));
+ assert.equal(saved.act,2);assert.equal(saved.phase,"planning");
+});
