@@ -30,7 +30,7 @@ test("UI smoke: 70-card library filters, map route, autosave and battle render",
  assert.match(app.innerHTML,/THIÊN PHÚ/);
  assert.match(app.innerHTML,/PHẢN ỨNG ĐÃ CHUẨN BỊ/);
  assert.match(app.innerHTML,/DI VẬT/);
- const saved=JSON.parse(storage.get("tghm-v05-save"));
- assert.equal(saved.stage,1);assert.equal(saved.version,"0.5.0");
+ const saved=JSON.parse(storage.get("tghm-v06-save"));
+ assert.equal(saved.stage,1);assert.equal(saved.version,"0.6.0");
  assert.equal(saved.phase,"planning");
 });
